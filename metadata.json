@@ -1,0 +1,6 @@
+{
+  "name": "mostasid-report - التقرير اليومي للمصالح الاقتصادية",
+  "description": "منظومة رقمية عصرية لإدارة التقارير اليومية والوثائق الإدارية لمصلحة التسيير المالي والمادي",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
