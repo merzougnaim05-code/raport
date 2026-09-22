@@ -17,7 +17,8 @@ import {
   Trash2, 
   CheckCheck,
   PenTool,
-  Calendar
+  Calendar,
+  CopyPlus
 } from 'lucide-react';
 
 interface DayReportViewProps {
@@ -96,6 +97,21 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
     totals.d_pres += Number(c.d_pres) || 0;
   });
 
+  // Attendance rate per meal (null when nothing registered)
+  const attendancePct = (pres: number, reg: number): number | null =>
+    reg > 0 ? Math.round((pres / reg) * 100) : null;
+
+  const pctClass = (p: number | null) =>
+    p === null
+      ? 'text-slate-400 dark:text-slate-500'
+      : p >= 80
+        ? 'text-emerald-700 dark:text-emerald-400'
+        : p >= 50
+          ? 'text-amber-600 dark:text-amber-400'
+          : 'text-rose-600 dark:text-rose-400';
+
+  const pctLabel = (p: number | null) => (p === null ? '—' : `${p}٪`);
+
   // Handlers for headcount
   const handleHeadcountChange = (catKey: string, field: string, value: string) => {
     onUpdateDay(dayNum, (prev) => {
@@ -129,11 +145,29 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
   };
 
   // Handlers for workers
+  const PRESENT_STATUSES = ['حاضر', 'يوم كامل'];
+
   const handleWorkerStatus = (workerId: string, status: string) => {
     onUpdateDay(dayNum, (prev) => {
       const ws = { ...(prev.workerStatus || {}) };
       ws[workerId] = status;
-      return { ...prev, workerStatus: ws };
+
+      // Sync attendance table: auto rows are rebuilt on every status change
+      const worker = data.workers.find((w) => w.id === workerId);
+      const att = (prev.attendance || []).filter(
+        (r) => !(r.auto && r.workerId === workerId)
+      );
+      if (worker && !PRESENT_STATUSES.includes(status)) {
+        att.push({
+          name: worker.name,
+          duration: 'يوم كامل',
+          reason: status,
+          notes: '',
+          auto: true,
+          workerId,
+        });
+      }
+      return { ...prev, workerStatus: ws, attendance: att };
     });
   };
 
@@ -143,7 +177,8 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
       data.workers.forEach((w) => {
         ws[w.id] = 'حاضر';
       });
-      return { ...prev, workerStatus: ws };
+      const att = (prev.attendance || []).filter((r) => !r.auto);
+      return { ...prev, workerStatus: ws, attendance: att };
     });
   };
 
@@ -155,6 +190,32 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
       return { ...prev, attendance: att };
     });
   };
+
+  // Copy headcount + meals from the previous day
+  const handleCopyPrevDay = () => {
+    const prevDay = data.days[dayNum - 1];
+    if (!prevDay) return;
+
+    const hasCurrentData =
+      Object.values(currentDay.headcount || {}).some((cat: any) =>
+        Object.values(cat || {}).some((v) => Number(v) > 0)
+      ) ||
+      Object.values(currentDay.meals || {}).some(
+        (m: any) => Boolean(m?.planned) || Boolean(m?.served)
+      );
+
+    if (hasCurrentData && !window.confirm('سيتم استبدال التعداد وقائمة الوجبات المدخلة اليوم ببيانات اليوم السابق. هل ترغب في المتابعة؟')) {
+      return;
+    }
+
+    onUpdateDay(dayNum, (prev) => ({
+      ...prev,
+      headcount: JSON.parse(JSON.stringify(prevDay.headcount || {})),
+      meals: JSON.parse(JSON.stringify(prevDay.meals || {})),
+    }));
+  };
+
+  const canCopyPrevDay = dayNum > 1 && Boolean(data.days[dayNum - 1]);
 
   const handleUpdateAttendanceRow = (idx: number, field: string, value: string) => {
     onUpdateDay(dayNum, (prev) => {
@@ -221,6 +282,16 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
           >
             <Printer className="w-4 h-4" />
             <span>معاينة وطباعة</span>
+          </button>
+
+          <button
+            onClick={handleCopyPrevDay}
+            disabled={!canCopyPrevDay}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            title="نسخ التعداد وقائمة الوجبات من اليوم السابق"
+          >
+            <CopyPlus className="w-4 h-4" />
+            <span>نسخ بيانات الأمس</span>
           </button>
 
           <button
@@ -340,6 +411,18 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
               })}
             </tbody>
             <tfoot>
+              <tr className="bg-slate-50 dark:bg-slate-800/60 font-bold text-xs text-center border-t border-slate-200 dark:border-slate-700">
+                <td className="py-1.5 px-3 border-l border-slate-200 dark:border-slate-700 text-right text-slate-600 dark:text-slate-300">نسبة الحضور</td>
+                <td colSpan={2} className={`py-1.5 px-1 border-l border-slate-200 dark:border-slate-700 ${pctClass(attendancePct(totals.b_pres, totals.b_reg))}`}>
+                  {pctLabel(attendancePct(totals.b_pres, totals.b_reg))}
+                </td>
+                <td colSpan={2} className={`py-1.5 px-1 border-l border-slate-200 dark:border-slate-700 ${pctClass(attendancePct(totals.l_pres, totals.l_reg))}`}>
+                  {pctLabel(attendancePct(totals.l_pres, totals.l_reg))}
+                </td>
+                <td colSpan={2} className={`py-1.5 px-1 ${pctClass(attendancePct(totals.d_pres, totals.d_reg))}`}>
+                  {pctLabel(attendancePct(totals.d_pres, totals.d_reg))}
+                </td>
+              </tr>
               <tr className="bg-slate-100 dark:bg-slate-800 font-black text-slate-900 dark:text-white text-center border-t-2 border-slate-300 dark:border-slate-700">
                 <td className="py-2.5 px-3 border-l border-slate-300 dark:border-slate-700 text-right">المجموع الكلي</td>
                 <td className="py-2 px-1 border-l border-slate-300 dark:border-slate-700">{totals.b_reg}</td>
@@ -589,13 +672,23 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
                       />
                     </td>
                     <td className="p-1 text-center">
-                      <button
-                        onClick={() => handleDeleteAttendanceRow(idx)}
-                        className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors cursor-pointer"
-                        title="حذف هذا السطر"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        {row.auto && (
+                          <span
+                            className="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded px-1 py-0.5"
+                            title="أُضيف هذا السطر تلقائيًا من حالة العامل في جدول الحضور"
+                          >
+                            تلقائي
+                          </span>
+                        )}
+                        <button
+                          onClick={() => handleDeleteAttendanceRow(idx)}
+                          className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors cursor-pointer"
+                          title="حذف هذا السطر"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

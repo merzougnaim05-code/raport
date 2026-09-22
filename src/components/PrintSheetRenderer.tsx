@@ -156,6 +156,20 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
               })}
             </tbody>
             <tfoot>
+              {!blank && (
+                <tr className="bg-slate-50 font-semibold">
+                  <td className="border border-black p-1 text-right">نسبة الحضور</td>
+                  <td colSpan={2} className="border border-black p-1">
+                    {totals.b_reg > 0 ? `${Math.round((totals.b_pres / totals.b_reg) * 100)}٪` : '—'}
+                  </td>
+                  <td colSpan={2} className="border border-black p-1">
+                    {totals.l_reg > 0 ? `${Math.round((totals.l_pres / totals.l_reg) * 100)}٪` : '—'}
+                  </td>
+                  <td colSpan={2} className="border border-black p-1">
+                    {totals.d_reg > 0 ? `${Math.round((totals.d_pres / totals.d_reg) * 100)}٪` : '—'}
+                  </td>
+                </tr>
+              )}
               <tr className="bg-slate-200 font-bold">
                 <td className="border border-black p-1 text-right">المجموع الكلي</td>
                 <td className="border border-black p-1">{blank ? '' : totals.b_reg}</td>

@@ -39,6 +39,8 @@ export interface AttendanceEntry {
   duration: string;
   reason: string;
   notes: string;
+  auto?: boolean;
+  workerId?: string;
 }
 
 export interface DayReportData {
