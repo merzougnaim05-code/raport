@@ -1,5 +1,6 @@
 import React from 'react';
-import { Printer, X, Download } from 'lucide-react';
+import { Printer, X, FileDown, FileText } from 'lucide-react';
+import { exportToPdf, exportToWord } from '../utils/exportUtils';
 
 interface PrintPreviewModalProps {
   isOpen: boolean;
@@ -17,13 +18,16 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
   if (!isOpen) return null;
 
   const handlePrint = () => {
+    const prev = document.title;
+    document.title = title;
     window.print();
+    document.title = prev;
   };
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-slate-900/80 backdrop-blur-xs no-print">
       {/* Top action bar */}
-      <div className="flex items-center justify-between px-6 py-3.5 bg-slate-900 border-b border-slate-700 text-white shadow-md">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-6 py-3.5 bg-slate-900 border-b border-slate-700 text-white shadow-md">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-emerald-600/30 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
             <Printer className="w-4 h-4" />
@@ -34,7 +38,23 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => exportToPdf(title)}
+            title="تحميل نسخة PDF (تُفتح نافذة نظيفة ثم اختر حفظ PDF)"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-500 rounded-lg shadow-sm transition-colors cursor-pointer"
+          >
+            <FileDown className="w-4 h-4" />
+            تحميل PDF
+          </button>
+          <button
+            onClick={() => exportToWord(title)}
+            title="تحميل نسخة Word (.doc)"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm transition-colors cursor-pointer"
+          >
+            <FileText className="w-4 h-4" />
+            تحميل Word
+          </button>
           <button
             onClick={handlePrint}
             className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-900 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-sm transition-colors cursor-pointer"
@@ -52,9 +72,14 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
         </div>
       </div>
 
+      {/* Hint to remove browser URL footer (Netlify link) */}
+      <div className="px-6 py-2 bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800 text-[11px] text-amber-900 dark:text-amber-200 font-semibold">
+        لإخفاء رابط الموقع (netlify) من الورقة المطبوعة: في نافذة الطباعة أزل علامة «الرؤوس والتذييلات / Headers and footers».
+      </div>
+
       {/* Preview paper body */}
       <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center bg-slate-800/60">
-        <div className="w-full max-w-[850px] bg-white text-slate-900 rounded-xl shadow-2xl p-8 md:p-12 border border-slate-200 my-auto">
+        <div id="print-preview-content" className="w-full max-w-[850px] bg-white text-slate-900 rounded-xl shadow-2xl p-8 md:p-12 border border-slate-200 my-auto">
           {children}
         </div>
       </div>

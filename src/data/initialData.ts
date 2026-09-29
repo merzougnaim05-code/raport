@@ -1,4 +1,5 @@
 import { AppData, DayReportData } from '../types';
+import { getDefaultSchoolYear } from '../utils/dateUtils';
 
 export const CATEGORIES = [
   { key: 'boarding', label: 'داخلي' },
@@ -86,7 +87,8 @@ export function createEmptyDay(): DayReportData {
 }
 
 export function getDefaultAppData(): AppData {
-  const currentMonthIdx = new Date().getMonth();
+  const now = new Date();
+  const currentMonthIdx = now.getMonth();
   return {
     meta: {
       republic: 'الجمهورية الجزائرية الديمقراطية الشعبية',
@@ -95,7 +97,7 @@ export function getDefaultAppData(): AppData {
       institution: 'متوسطة الإخوة الشهداء',
       municipality: 'تالخمت',
       wilaya: 'باتنة',
-      year: '2025 / 2026',
+      year: getDefaultSchoolYear(now),
       monthNum: currentMonthIdx + 1,
       monthName: ARABIC_MONTHS[currentMonthIdx] || 'أفريل',
       economistName: 'بن عمارة سمير',

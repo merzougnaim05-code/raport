@@ -74,8 +74,14 @@ export default function App() {
 
   const toggleDarkMode = () => setDarkMode((prev) => !prev);
 
-  // Splash screen state - default to false so app shows directly in preview
-  const [showSplash, setShowSplash] = useState<boolean>(false);
+  // Splash screen state - show on first visit (loading/welcome), then remember dismissal
+  const [showSplash, setShowSplash] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(SPLASH_SEEN_KEY) !== 'true';
+    } catch {
+      return true;
+    }
+  });
 
   // Print Preview Modal state
   const [printModal, setPrintModal] = useState<{

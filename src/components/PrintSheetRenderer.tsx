@@ -1,7 +1,8 @@
 import React from 'react';
 import { AppData, DayReportData, ShiftCellData } from '../types';
 import { Letterhead } from './Letterhead';
-import { CATEGORIES, STATUS_OPTIONS, WEEK_SCHEDULE_DAYS, WEEKDAY_AR } from '../data/initialData';
+import { CATEGORIES, WEEK_SCHEDULE_DAYS } from '../data/initialData';
+import { getWeekdayName as resolveWeekday } from '../utils/dateUtils';
 import { DOC_LIST, SIMPLE_DOCS_SPEC } from '../data/documentsConfig';
 
 interface PrintSheetRendererProps {
@@ -29,19 +30,8 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
     return cell.mode || '';
   };
 
-  // Helper to get weekday name
-  const getWeekdayName = (n: number) => {
-    const m = meta.monthNum || new Date().getMonth() + 1;
-    const yearMatch = String(meta.year || '').match(/\d{4}/);
-    const y = yearMatch ? parseInt(yearMatch[0]) : new Date().getFullYear();
-    try {
-      const dt = new Date(y, m - 1, n);
-      if (dt.getMonth() !== m - 1) return '';
-      return WEEKDAY_AR[dt.getDay()];
-    } catch {
-      return '';
-    }
-  };
+  // Helper to get weekday name (shared util: handles school-year + current month correctly)
+  const getWeekdayName = (n: number) => resolveWeekday(n, meta);
 
   // =========================================================================
   // 1. DAY REPORT PRINT

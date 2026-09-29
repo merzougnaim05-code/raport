@@ -34,16 +34,16 @@
   background: #475569;
 }
 
-/* Print styling - always pristine white paper */
+/* Print styling - always pristine white paper, no site URL / Netlify footer from the app itself */
 @media print {
   html, body, .dark html, .dark body {
     background: white !important;
     color: black !important;
     font-size: 12pt;
   }
-  
+
   /* Hide all app UI */
-  #app-root, .no-print, header, nav, aside, .toast-container, button, .sidebar-overlay {
+  #app-root, .no-print, header, nav, aside, .toast-container, button, .sidebar-overlay, #root > :not(#print-sheet-root) {
     display: none !important;
   }
   

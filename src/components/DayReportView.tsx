@@ -1,6 +1,7 @@
 import React from 'react';
 import { AppData, DayReportData } from '../types';
-import { CATEGORIES, STATUS_OPTIONS, WEEKDAY_AR } from '../data/initialData';
+import { CATEGORIES, STATUS_OPTIONS } from '../data/initialData';
+import { getWeekdayName as resolveWeekday } from '../utils/dateUtils';
 import { 
   Printer, 
   Save, 
@@ -61,21 +62,8 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
     signedAt: '',
   };
 
-  // Helper to get weekday name
-  const getWeekdayName = (n: number) => {
-    const m = data.meta.monthNum || new Date().getMonth() + 1;
-    const yearMatch = String(data.meta.year || '').match(/\d{4}/);
-    const y = yearMatch ? parseInt(yearMatch[0]) : new Date().getFullYear();
-    try {
-      const dt = new Date(y, m - 1, n);
-      if (dt.getMonth() !== m - 1) return '';
-      return WEEKDAY_AR[dt.getDay()];
-    } catch {
-      return '';
-    }
-  };
-
-  const weekday = getWeekdayName(dayNum);
+  // Helper to get weekday name (shared util: handles school-year + current month correctly)
+  const weekday = resolveWeekday(dayNum, data.meta);
 
   // Compute headcount totals
   const totals = {
