@@ -47,6 +47,16 @@ export const DEFAULT_MEALS: MealTemplate[] = [
   { id: 'm1', name: 'غداء عادي', category: 'lunch', description: 'سلطة متنوعة، طبق رئيسي، خبز وفاكهة' },
   { id: 'm2', name: 'عشاء عادي', category: 'dinner', description: 'حساء الخضر، طبق خفيف، ياغورت' },
 ];
+
+export const ECONOMIST_NOTE_OPTIONS = [
+  'سير عادي للخدمة',
+  'تم توزيع الوجبات في الوقت المحدد',
+  'تم التنسيق مع الطباخ والمخزني',
+  'النظافة العامة جيدة بالمطعم وقاعات الدراسة',
+  'المرافق في حالة جيدة، لا توجد أعطال',
+  'توجد ملاحظات تتطلب تدخل المدير',
+];
+
 export const WEEK_SCHEDULE_DAYS = [
   { id: 'sat', label: 'السبت' },
   { id: 'sun', label: 'الأحد' },
@@ -89,6 +99,11 @@ export function createEmptyDay(): DayReportData {
     },
     workerStatus: {},
     attendance: [],
+    economistNotes: [
+      { preset: '', text: '' },
+      { preset: '', text: '' },
+      { preset: '', text: '' },
+    ],
     facilitiesStatus: '',
     worksDone: '',
     worksUrgent: '',

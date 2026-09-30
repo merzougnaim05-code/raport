@@ -300,7 +300,13 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           </div>
           <div className="flex gap-1.5">
             <div className="flex-1 border border-black p-2">
-              <b>ملاحظات المقتصد:</b> {blank ? '' : day.notesEconomist || 'سير عادي للخدمة.'}
+              <b>ملاحظات المقتصد:</b>{' '}
+              {blank
+                ? ''
+                : (day.economistNotes || [])
+                    .map((n) => (n?.text || '').trim())
+                    .filter(Boolean)
+                    .join(' — ') || day.notesEconomist || 'سير عادي للخدمة.'}
             </div>
             <div className="flex-1 border border-black p-2">
               <b>ملاحظات وتأشيرة المدير:</b> {blank ? '' : day.notesDirector || '—'}

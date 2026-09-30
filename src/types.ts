@@ -52,6 +52,11 @@ export interface AttendanceEntry {
   workerId?: string;
 }
 
+export interface EconomistNote {
+  preset: string;
+  text: string;
+}
+
 export interface DayReportData {
   headcount: Record<string, HeadcountRow>;
   meals: {
@@ -62,6 +67,7 @@ export interface DayReportData {
   };
   workerStatus: Record<string, string>;
   attendance: AttendanceEntry[];
+  economistNotes?: EconomistNote[];
   facilitiesStatus: string;
   worksDone: string;
   worksUrgent: string;
