@@ -1706,20 +1706,27 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
         )}
       </div>
 
-      {/* Floating Save bar */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 bg-slate-900/90 dark:bg-slate-950/90 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-xl border border-slate-700 dark:border-slate-800 flex items-center gap-4 no-print">
-        <button
-          onClick={onSave}
-          className="flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm shadow-md transition-all cursor-pointer"
-        >
-          <Save className="w-4 h-4" />
-          <span>حفظ الوثيقة الآن</span>
-        </button>
+      {/* Floating Autosave Status */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2.5 rounded-full shadow-lg shadow-slate-900/10 border border-slate-200 dark:border-slate-700 flex items-center gap-2.5 no-print">
+        <span className="save-dot">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+        </span>
+        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
+          حفظ تلقائي نشط
+        </span>
         {lastSavedText && (
-          <span className="text-[11px] text-slate-300 font-medium hidden sm:inline">
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium hidden sm:inline">
             {lastSavedText}
           </span>
         )}
+        <button
+          onClick={onSave}
+          title="حفظ يدوي وتأكيد"
+          className="p-1.5 rounded-full text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 transition-colors cursor-pointer"
+        >
+          <Save className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   );

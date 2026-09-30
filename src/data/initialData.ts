@@ -1,4 +1,4 @@
-import { AppData, DayReportData } from '../types';
+import { AppData, DayReportData, MealTemplate } from '../types';
 import { getDefaultSchoolYear } from '../utils/dateUtils';
 
 export const CATEGORIES = [
@@ -35,6 +35,18 @@ export const WEEKDAY_AR = [
   'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'
 ];
 
+export const MEAL_CATEGORIES = [
+  { id: 'breakfast', label: 'فطور الصباح' },
+  { id: 'lunch', label: 'وجبة الغداء' },
+  { id: 'dinner', label: 'وجبة العشاء' },
+  { id: 'general', label: 'عام (كل الوجبات)' },
+];
+
+export const DEFAULT_MEALS: MealTemplate[] = [
+  { id: 'm0', name: 'فطور عادي', category: 'breakfast', description: 'حليب، قهوة، خبز، زبدة ومربى' },
+  { id: 'm1', name: 'غداء عادي', category: 'lunch', description: 'سلطة متنوعة، طبق رئيسي، خبز وفاكهة' },
+  { id: 'm2', name: 'عشاء عادي', category: 'dinner', description: 'حساء الخضر، طبق خفيف، ياغورت' },
+];
 export const WEEK_SCHEDULE_DAYS = [
   { id: 'sat', label: 'السبت' },
   { id: 'sun', label: 'الأحد' },
@@ -104,6 +116,7 @@ export function getDefaultAppData(): AppData {
       directorName: 'قادري عزوز',
     },
     workers: DEFAULT_SEED_WORKERS,
+    mealLibrary: DEFAULT_MEALS.map((m) => ({ ...m })),
     days: {},
     docs: {},
     docRegistry: {},

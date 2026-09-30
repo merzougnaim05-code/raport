@@ -19,6 +19,15 @@ export interface Worker {
   phone: string;
 }
 
+export type MealCategory = 'breakfast' | 'lunch' | 'dinner' | 'general';
+
+export interface MealTemplate {
+  id: string;
+  name: string;
+  category: MealCategory;
+  description: string;
+}
+
 export interface HeadcountRow {
   b_reg?: string | number;
   b_pres?: string | number;
@@ -76,12 +85,13 @@ export interface ShiftCellData {
 export interface AppData {
   meta: InstitutionMeta;
   workers: Worker[];
+  mealLibrary: MealTemplate[];
   days: Record<number, DayReportData>;
   docs: Record<string, any>;
   docRegistry: Record<string, DocRegistryEntry[]>;
 }
 
-export type NavView = 'dashboard' | 'day' | 'doclist' | 'doc' | 'workers' | 'settings';
+export type NavView = 'dashboard' | 'day' | 'doclist' | 'doc' | 'workers' | 'meals' | 'settings';
 
 export interface DocMetaInfo {
   key: string;

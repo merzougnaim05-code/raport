@@ -23,6 +23,7 @@ interface HeaderProps {
   onOpenSplash: () => void;
   darkMode: boolean;
   onToggleDarkMode: () => void;
+  lastSavedText?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -37,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSplash,
   darkMode,
   onToggleDarkMode,
+  lastSavedText,
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-xs px-4 sm:px-6 py-3 no-print transition-colors">
@@ -52,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow-sm shadow-emerald-700/20 shrink-0">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 text-white flex items-center justify-center font-black text-sm shadow-md shadow-emerald-600/25 ring-1 ring-emerald-500/40 shrink-0">
               م
             </div>
             <div className="min-w-0">
@@ -70,6 +72,19 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Center / Right: Quick Actions */}
         <div className="flex items-center gap-2">
+          {/* Autosave status */}
+          <div
+            title={lastSavedText || 'الحفظ التلقائي نشط — تُحفظ كل التعديلات فورًا'}
+            className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/70 dark:border-emerald-800/60"
+          >
+            <span className="save-dot">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300">
+              {lastSavedText || 'حفظ تلقائي'}
+            </span>
+          </div>
           {/* Quick Day Switcher */}
           <div className="hidden sm:flex items-center gap-1.5 bg-slate-100/90 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 p-1 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors">
             <Calendar className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 mr-1.5" />

@@ -1,6 +1,7 @@
 import React from 'react';
 import { AppData, NavView } from '../types';
 import { DOC_LIST } from '../data/documentsConfig';
+import { resolveReportYear, getWeekdayName } from '../utils/dateUtils';
 import { 
   CalendarDays, 
   FolderArchive, 
@@ -14,7 +15,8 @@ import {
   AlertTriangle,
   FileSpreadsheet,
   Building2,
-  ChevronLeft
+  ChevronLeft,
+  Utensils
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -72,6 +74,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const avgPresent = presentDaysCount ? Math.round(totalPresentCount / presentDaysCount) : 0;
 
+  // Real month calendar (starts Saturday, like the Algerian work week)
+  const calYear = resolveReportYear(data.meta);
+  const calMonth = data.meta.monthNum || new Date().getMonth() + 1;
+  const daysInMonth = new Date(calYear, calMonth, 0).getDate();
+  const firstDow = new Date(calYear, calMonth - 1, 1).getDay(); // 0=Sun..6=Sat
+  const leadBlanks = (firstDow + 1) % 7; // offset when week starts Saturday
+  const weekHeads = ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+  const nowD = new Date();
+  const isCurrentMonth = calMonth === nowD.getMonth() + 1 && calYear === nowD.getFullYear();
+  const todayNum = nowD.getDate();
+  const dayStatus = (d: number): 'full' | 'draft' | 'empty' => {
+    if (isDayFilled(d)) return 'full';
+    if (data.days[d]) return 'draft';
+    return 'empty';
+  };
+
   // Group documents for quick jump
   const docGroups: Record<string, typeof DOC_LIST> = {};
   DOC_LIST.forEach((doc) => {
@@ -122,7 +140,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* KPI Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Filled Days */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
+        <div className="card-soft p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">التقارير المنجزة</span>
             <span className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
@@ -144,7 +162,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Total Workers */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
+        <div className="card-soft p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">إجمالي العمال</span>
             <span className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
@@ -161,7 +179,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Average Attendance */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
+        <div className="card-soft p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">متوسط الحضور</span>
             <span className="p-2 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400">
@@ -178,7 +196,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Absences and Delays */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
+        <div className="card-soft p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">الغيابات والتأخرات</span>
             <span className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
@@ -196,7 +214,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Modern Control Panel Grid */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-6 transition-colors">
+      <div className="card-soft p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">لوحة العمليات السريعة</h3>
@@ -271,6 +289,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </button>
 
           <button
+            onClick={() => onNavigate('meals')}
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-right transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-950/80 text-orange-700 dark:text-orange-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+              <Utensils className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">مكتبة الوجبات</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">كتابة وإدراج وجبات التقرير</div>
+            </div>
+          </button>
+
+          <button
             onClick={() => onNavigate('settings')}
             className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-right transition-all cursor-pointer flex flex-col justify-between"
           >
@@ -339,42 +370,60 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* Two Column Layout: Quick Days Mini Launcher & Official Metadata */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Quick Days Launcher */}
-        <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-6 transition-colors">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+        {/* Monthly calendar */}
+        <div className="lg:col-span-2 card-soft p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">الوصول المباشر لأيام الشهر</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">تقويم الشهر — {data.meta.monthName} {calYear}</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">اختر أي يوم لمراجعة أو تدوين تقريره</p>
             </div>
-            <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800/80">
-              شهر {data.meta.monthName}
-            </span>
+            <div className="flex items-center gap-3 text-[11px] font-bold">
+              <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> مكتمل
+              </span>
+              <span className="flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> مسودة
+              </span>
+              <span className="flex items-center gap-1 text-slate-400">
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700" /> فارغ
+              </span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 gap-2 mt-5">
-            {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => {
-              const filled = isDayFilled(d);
+          <div className="grid grid-cols-7 gap-1.5 mt-5 text-center">
+            {weekHeads.map((w) => (
+              <div key={w} className="text-[11px] font-black text-slate-400 dark:text-slate-500 pb-1">
+                {w}
+              </div>
+            ))}
+            {Array.from({ length: leadBlanks }).map((_, i) => (
+              <div key={`b${i}`} />
+            ))}
+            {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => {
+              const st = dayStatus(d);
               const isCurrent = d === currentDay;
+              const isToday = isCurrentMonth && d === todayNum;
               return (
                 <button
                   key={d}
                   onClick={() => onNavigate('day', d)}
-                  className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1 ${
+                  title={`اليوم ${d} — يوم ${getWeekdayName(d, data.meta)}`}
+                  className={`relative p-2 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 min-h-[52px] ${
                     isCurrent
-                      ? 'bg-emerald-600 text-white border-emerald-700 shadow-sm font-bold scale-105'
-                      : filled
+                      ? 'bg-emerald-600 text-white border-emerald-700 shadow-md shadow-emerald-600/25 font-black scale-[1.03]'
+                      : st === 'full'
                       ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
-                      : 'bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-750 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
+                      : st === 'draft'
+                      ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-300 border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-900/30'
+                      : 'bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  } ${isToday && !isCurrent ? 'ring-2 ring-sky-500/70' : ''}`}
                 >
-                  <span className="text-xs font-bold">اليوم {d}</span>
-                  {filled ? (
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-0.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      مكتمل
-                    </span>
-                  ) : (
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500">فارغ</span>
+                  <span className="text-sm font-black leading-none">{d}</span>
+                  <span className="text-[9px] font-semibold opacity-80 leading-none">
+                    {getWeekdayName(d, data.meta)}
+                  </span>
+                  {isToday && (
+                    <span className="absolute top-1 left-1 w-1.5 h-1.5 rounded-full bg-sky-500" title="اليوم" />
                   )}
                 </button>
               );
@@ -383,7 +432,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Institution Info Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-6 flex flex-col justify-between transition-colors">
+        <div className="card-soft p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">بيانات المؤسسة</h3>

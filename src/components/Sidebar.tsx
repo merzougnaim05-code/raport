@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavView, InstitutionMeta } from '../types';
+import { DOC_LIST } from '../data/documentsConfig';
+import { getWeekdayName } from '../utils/dateUtils';
 import { 
   LayoutDashboard, 
   CalendarDays, 
@@ -8,7 +10,10 @@ import {
   Settings, 
   X, 
   CheckCircle2, 
-  ShieldCheck
+  ShieldCheck,
+  Search,
+  FileText,
+  Utensils
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -19,6 +24,7 @@ interface SidebarProps {
   onClose: () => void;
   onSelectView: (view: NavView) => void;
   onSelectDay: (day: number) => void;
+  onSelectDoc: (key: string) => void;
   isDayFilled: (day: number) => boolean;
 }
 
@@ -30,11 +36,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   onSelectView,
   onSelectDay,
+  onSelectDoc,
   isDayFilled,
 }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const q = searchTerm.trim().toLowerCase();
+  const showResults = q.length > 0;
+
+  const matchedDays = showResults
+    ? Array.from({ length: 31 }, (_, i) => i + 1).filter((d) => {
+        const wd = getWeekdayName(d, meta);
+        return (
+          String(d).includes(q) ||
+          `اليوم ${d}`.includes(searchTerm.trim()) ||
+          (wd && wd.includes(searchTerm.trim()))
+        );
+      }).slice(0, 8)
+    : [];
+
+  const matchedDocs = showResults
+    ? DOC_LIST.filter(
+        (doc) =>
+          doc.title.toLowerCase().includes(q) ||
+          (doc.subtitleFr && doc.subtitleFr.toLowerCase().includes(q))
+      ).slice(0, 8)
+    : [];
   const navItems = [
     { id: 'dashboard' as NavView, label: 'لوحة التحكم', icon: LayoutDashboard },
     { id: 'day' as NavView, label: 'التقرير اليومي', icon: CalendarDays },
+    { id: 'meals' as NavView, label: 'مكتبة الوجبات', icon: Utensils },
     { id: 'doclist' as NavView, label: 'الوثائق الإدارية (19)', icon: FolderArchive },
     { id: 'workers' as NavView, label: 'قائمة العمال', icon: Users },
     { id: 'settings' as NavView, label: 'معلومات المؤسسة', icon: Settings },
@@ -82,6 +112,70 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Navigation Sections */}
         <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6">
+          {/* Global instant search */}
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="بحث فوري: يوم، وثيقة..."
+              className="w-full text-xs pr-10 pl-3 py-2.5 rounded-xl border border-slate-700/60 bg-slate-800/70 text-slate-100 placeholder:text-slate-500 focus:bg-slate-800 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 focus:outline-none"
+            />
+          </div>
+
+          {showResults ? (
+            <div className="space-y-4">
+              {matchedDays.length > 0 && (
+                <div className="space-y-1">
+                  <div className="px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    الأيام
+                  </div>
+                  {matchedDays.map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => {
+                        onSelectDay(d);
+                        setSearchTerm('');
+                        onClose();
+                      }}
+                      className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-bold text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      <span>اليوم {d} — {getWeekdayName(d, meta)}</span>
+                      {isDayFilled(d) && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {matchedDocs.length > 0 && (
+                <div className="space-y-1">
+                  <div className="px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    الوثائق
+                  </div>
+                  {matchedDocs.map((doc) => (
+                    <button
+                      key={doc.key}
+                      onClick={() => {
+                        onSelectDoc(doc.key);
+                        setSearchTerm('');
+                        onClose();
+                      }}
+                      className="w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer text-right"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                      <span className="truncate">{doc.title}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {matchedDays.length === 0 && matchedDocs.length === 0 && (
+                <div className="text-center text-xs text-slate-500 py-4">
+                  لا نتائج مطابقة لـ «{searchTerm.trim()}»
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
           {/* Main Views */}
           <div className="space-y-1">
             <div className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
@@ -150,6 +244,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               })}
             </div>
           </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}

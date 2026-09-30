@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AppData, NavView, DayReportData, InstitutionMeta, Worker } from './types';
+import { AppData, NavView, DayReportData, InstitutionMeta, Worker, MealTemplate } from './types';
 import { getDefaultAppData, createEmptyDay } from './data/initialData';
 import { DOC_LIST } from './data/documentsConfig';
 import { Header } from './components/Header';
@@ -9,6 +9,7 @@ import { DayReportView } from './components/DayReportView';
 import { DocListView } from './components/DocListView';
 import { DocDetailView } from './components/DocDetailView';
 import { WorkersView } from './components/WorkersView';
+import { MealsLibraryView } from './components/MealsLibraryView';
 import { SettingsView } from './components/SettingsView';
 import { PrintPreviewModal } from './components/PrintPreviewModal';
 import { PrintSheetRenderer } from './components/PrintSheetRenderer';
@@ -30,6 +31,7 @@ export default function App() {
         return {
           meta: { ...defaults.meta, ...(parsed.meta || {}) },
           workers: parsed.workers && parsed.workers.length > 0 ? parsed.workers : defaults.workers,
+          mealLibrary: parsed.mealLibrary ?? defaults.mealLibrary,
           days: parsed.days || {},
           docs: parsed.docs || {},
           docRegistry: parsed.docRegistry || {},
@@ -248,6 +250,47 @@ export default function App() {
     });
   };
 
+  // Meals library actions
+  const handleAddMeal = (meal: Omit<MealTemplate, 'id'>) => {
+    setData((prev) => {
+      const item: MealTemplate = {
+        ...meal,
+        id: `m_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      };
+      const nextData = { ...prev, mealLibrary: [...prev.mealLibrary, item] };
+      saveToStorage(nextData);
+      return nextData;
+    });
+    showToast('تمت إضافة الوجبة إلى المكتبة');
+  };
+
+  const handleUpdateMeal = (id: string, patch: Partial<MealTemplate>) => {
+    setData((prev) => {
+      const updated = prev.mealLibrary.map((m) => (m.id === id ? { ...m, ...patch } : m));
+      const nextData = { ...prev, mealLibrary: updated };
+      saveToStorage(nextData);
+      return nextData;
+    });
+  };
+
+  const handleDeleteMeal = (id: string) => {
+    const meal = data.mealLibrary.find((m) => m.id === id);
+    setConfirmModal({
+      isOpen: true,
+      title: 'حذف وجبة من المكتبة',
+      message: `هل أنت متأكد من حذف "${meal?.name || 'هذه الوجبة'}" من مكتبة الوجبات؟`,
+      onConfirm: () => {
+        setData((prev) => {
+          const nextData = { ...prev, mealLibrary: prev.mealLibrary.filter((m) => m.id !== id) };
+          saveToStorage(nextData);
+          return nextData;
+        });
+        setConfirmModal((m) => ({ ...m, isOpen: false }));
+        showToast('تم حذف الوجبة من المكتبة');
+      },
+    });
+  };
+
   // Clear day with confirmation
   const handleClearDay = () => {
     setConfirmModal({
@@ -357,6 +400,7 @@ export default function App() {
             const mergedData: AppData = {
               meta: { ...defaults.meta, ...(imported.meta || {}) },
               workers: imported.workers || defaults.workers,
+              mealLibrary: imported.mealLibrary ?? defaults.mealLibrary,
               days: imported.days || {},
               docs: imported.docs || {},
               docRegistry: imported.docRegistry || {},
@@ -449,6 +493,7 @@ export default function App() {
           onClose={() => setIsSidebarOpen(false)}
           onSelectView={(v) => handleNavigate(v)}
           onSelectDay={(d) => handleNavigate('day', d)}
+          onSelectDoc={(key) => handleNavigate('doc', key)}
           isDayFilled={isDayFilled}
         />
 
@@ -471,6 +516,7 @@ export default function App() {
             onOpenSplash={() => setShowSplash(true)}
             darkMode={darkMode}
             onToggleDarkMode={toggleDarkMode}
+            lastSavedText={lastSavedText}
           />
 
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
@@ -539,6 +585,15 @@ export default function App() {
                 onUpdateWorker={handleUpdateWorker}
                 onDeleteWorker={handleDeleteWorker}
                 onPrintWorkers={handlePrintWorkers}
+              />
+            )}
+
+            {currentView === 'meals' && (
+              <MealsLibraryView
+                library={data.mealLibrary}
+                onAddMeal={handleAddMeal}
+                onUpdateMeal={handleUpdateMeal}
+                onDeleteMeal={handleDeleteMeal}
               />
             )}
 

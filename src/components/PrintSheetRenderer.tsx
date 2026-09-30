@@ -146,20 +146,6 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
               })}
             </tbody>
             <tfoot>
-              {!blank && (
-                <tr className="bg-slate-50 font-semibold">
-                  <td className="border border-black p-1 text-right">نسبة الحضور</td>
-                  <td colSpan={2} className="border border-black p-1">
-                    {totals.b_reg > 0 ? `${Math.round((totals.b_pres / totals.b_reg) * 100)}٪` : '—'}
-                  </td>
-                  <td colSpan={2} className="border border-black p-1">
-                    {totals.l_reg > 0 ? `${Math.round((totals.l_pres / totals.l_reg) * 100)}٪` : '—'}
-                  </td>
-                  <td colSpan={2} className="border border-black p-1">
-                    {totals.d_reg > 0 ? `${Math.round((totals.d_pres / totals.d_reg) * 100)}٪` : '—'}
-                  </td>
-                </tr>
-              )}
               <tr className="bg-slate-200 font-bold">
                 <td className="border border-black p-1 text-right">المجموع الكلي</td>
                 <td className="border border-black p-1">{blank ? '' : totals.b_reg}</td>
@@ -204,31 +190,72 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           </table>
         </div>
 
-        {/* Worker daily presence table */}
+        {/* Worker daily presence table: only absentees are shown to fit one page */}
         <div>
           <div className="text-xs font-bold mb-1">ثالثًا: وضعية وحضور العمال المهنيين وموظفي الخدمات</div>
-          <table className="w-full text-right text-[11px] border-collapse border border-black">
-            <thead>
-              <tr className="bg-slate-100 font-bold text-center">
-                <th className="border border-black p-1 w-10">ر.ت</th>
-                <th className="border border-black p-1">الاسم واللقب</th>
-                <th className="border border-black p-1">الوظيفة / الرتبة</th>
-                <th className="border border-black p-1 w-44 text-center">الحالة اليومية</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.workers.map((w, idx) => (
-                <tr key={w.id}>
-                  <td className="border border-black p-1 text-center font-bold">{idx + 1}</td>
-                  <td className="border border-black p-1 font-semibold">{w.name}</td>
-                  <td className="border border-black p-1">{w.job}</td>
-                  <td className="border border-black p-1 text-center font-bold">
-                    {blank ? '' : day.workerStatus?.[w.id] || 'حاضر'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {(() => {
+            const isPresent = (s?: string) => !s || s === 'حاضر' || s === 'يوم كامل';
+            if (!blank) {
+              const absent = data.workers.filter((w) => !isPresent(day.workerStatus?.[w.id]));
+              if (absent.length === 0) {
+                return (
+                  <div className="border border-black p-2 text-center text-xs font-bold">
+                    لا يوجد غياب — جميع العمال حاضرون.
+                  </div>
+                );
+              }
+              return (
+                <table className="w-full text-right text-[11px] border-collapse border border-black">
+                  <thead>
+                    <tr className="bg-slate-100 font-bold text-center">
+                      <th className="border border-black p-1 w-10">ر.ت</th>
+                      <th className="border border-black p-1">الاسم واللقب</th>
+                      <th className="border border-black p-1">الوظيفة / الرتبة</th>
+                      <th className="border border-black p-1 w-44 text-center">الحالة اليومية</th>
+                      <th className="border border-black p-1">ملاحظات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {absent.map((w, idx) => (
+                      <tr key={w.id}>
+                        <td className="border border-black p-1 text-center font-bold">{idx + 1}</td>
+                        <td className="border border-black p-1 font-semibold">{w.name}</td>
+                        <td className="border border-black p-1">{w.job}</td>
+                        <td className="border border-black p-1 text-center font-bold">
+                          {day.workerStatus?.[w.id] || 'حاضر'}
+                        </td>
+                        <td className="border border-black p-1"></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              );
+            }
+            return (
+              <table className="w-full text-right text-[11px] border-collapse border border-black">
+                <thead>
+                  <tr className="bg-slate-100 font-bold text-center">
+                    <th className="border border-black p-1 w-10">ر.ت</th>
+                    <th className="border border-black p-1">الاسم واللقب</th>
+                    <th className="border border-black p-1">الوظيفة / الرتبة</th>
+                    <th className="border border-black p-1 w-44 text-center">الحالة اليومية</th>
+                    <th className="border border-black p-1">ملاحظات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.workers.map((w, idx) => (
+                    <tr key={w.id}>
+                      <td className="border border-black p-1 text-center font-bold">{idx + 1}</td>
+                      <td className="border border-black p-1 font-semibold">{w.name}</td>
+                      <td className="border border-black p-1">{w.job}</td>
+                      <td className="border border-black p-1 text-center font-bold"></td>
+                      <td className="border border-black p-1"></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            );
+          })()}
         </div>
 
         {/* Attendance & Irregularities */}
@@ -258,24 +285,24 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           </table>
         </div>
 
-        {/* Facilities & Works */}
+        {/* Facilities & Works: each in its own frame */}
         <div className="text-[11px] space-y-1.5 pt-1">
-          <div>
+          <div className="border border-black p-2">
             <b>الوضعية وحالة المحلات:</b> {blank ? '' : day.facilitiesStatus || 'المحلات في حالة حسنة.'}
           </div>
-          <div className="flex gap-4">
-            <div className="flex-1">
+          <div className="flex gap-1.5">
+            <div className="flex-1 border border-black p-2">
               <b>الأشغال المنجزة:</b> {blank ? '' : day.worksDone || '—'}
             </div>
-            <div className="flex-1">
+            <div className="flex-1 border border-black p-2">
               <b>الأشغال المستعجلة:</b> {blank ? '' : day.worksUrgent || '—'}
             </div>
           </div>
-          <div className="flex gap-4 pt-1">
-            <div className="flex-1">
+          <div className="flex gap-1.5">
+            <div className="flex-1 border border-black p-2">
               <b>ملاحظات المقتصد:</b> {blank ? '' : day.notesEconomist || 'سير عادي للخدمة.'}
             </div>
-            <div className="flex-1">
+            <div className="flex-1 border border-black p-2">
               <b>ملاحظات وتأشيرة المدير:</b> {blank ? '' : day.notesDirector || '—'}
             </div>
           </div>
@@ -283,7 +310,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
         {/* Date and Signatures */}
         <div className="pt-2 text-[11px]">
-          <div>
+          <div className="text-left">
             <b>حرر بـ:</b> {blank ? '............................... في ...............................' : day.signedAt || `بـ ${meta.municipality} في ${dayNum} ${meta.monthName} ${meta.year}`}
           </div>
           <div className="flex justify-around items-start text-center mt-6">

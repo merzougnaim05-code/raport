@@ -205,6 +205,52 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
 
   const canCopyPrevDay = dayNum > 1 && Boolean(data.days[dayNum - 1]);
 
+  // Meals library: insert a saved meal into the day's menu
+  const libraryFor = (cat: string) =>
+    (data.mealLibrary || []).filter((m) => m.category === cat || m.category === 'general');
+
+  const handleInsertMeal = (meal: 'breakfast' | 'lunch' | 'dinner', id: string) => {
+    const tpl = (data.mealLibrary || []).find((m) => m.id === id);
+    if (!tpl) return;
+    onUpdateDay(dayNum, (prev) => {
+      const defaultMeals = {
+        breakfast: { planned: '', served: '' },
+        lunch: { planned: '', served: '' },
+        dinner: { planned: '', served: '' },
+      };
+      const meals = { ...defaultMeals, ...(prev.meals || {}) };
+      const cur = meals[meal] || { planned: '', served: '' };
+      const planned = cur.planned ? `${cur.planned}\n${tpl.description}` : tpl.description;
+      meals[meal] = { ...cur, planned };
+      return { ...prev, meals };
+    });
+  };
+
+  const mealPicker = (cat: 'breakfast' | 'lunch' | 'dinner') => {
+    const opts = libraryFor(cat);
+    if (opts.length === 0) return null;
+    return (
+      <select
+        defaultValue=""
+        onChange={(e) => {
+          if (e.target.value) {
+            handleInsertMeal(cat, e.target.value);
+            e.target.value = '';
+          }
+        }}
+        title="إدراج وجبة محفوظة من المكتبة"
+        className="text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 cursor-pointer focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 focus:outline-none max-w-[150px]"
+      >
+        <option value="">إدراج من المكتبة…</option>
+        {opts.map((o) => (
+          <option key={o.id} value={o.id} className="dark:bg-slate-800">
+            {o.name}
+          </option>
+        ))}
+      </select>
+    );
+  };
+
   const handleUpdateAttendanceRow = (idx: number, field: string, value: string) => {
     onUpdateDay(dayNum, (prev) => {
       const att = [...(prev.attendance || [])];
@@ -302,7 +348,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
 
       {/* 1. التعداد (Headcount) */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-850/50">
+        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
           <div className="flex items-center gap-2">
             <Utensils className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
             <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
@@ -323,7 +369,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
                 <th colSpan={2} className="py-1.5 px-2 border-l border-slate-200 dark:border-slate-700 bg-emerald-50/60 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-300">وجبة الغداء</th>
                 <th colSpan={2} className="py-1.5 px-2 bg-indigo-50/60 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300">وجبة العشاء</th>
               </tr>
-              <tr className="bg-slate-50 dark:bg-slate-850 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-700 text-center">
+              <tr className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-700 text-center">
                 <th className="py-1.5 px-2 border-l border-slate-200 dark:border-slate-700 w-20">المسجلون</th>
                 <th className="py-1.5 px-2 border-l border-slate-200 dark:border-slate-700 w-20">الحاضرون</th>
                 <th className="py-1.5 px-2 border-l border-slate-200 dark:border-slate-700 w-20">المسجلون</th>
@@ -437,9 +483,12 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Breakfast */}
           <div className="space-y-3 bg-amber-50/40 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-200/60 dark:border-amber-800/40">
-            <span className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
-              ☕ فطور الصباح
-            </span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                ☕ فطور الصباح
+              </span>
+              {mealPicker('breakfast')}
+            </div>
             <div>
               <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">الوجبة المقررة</label>
               <textarea
@@ -464,9 +513,12 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
 
           {/* Lunch */}
           <div className="space-y-3 bg-emerald-50/40 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-200/60 dark:border-emerald-800/40">
-            <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
-              🥗 وجبة الغداء
-            </span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
+                🥗 وجبة الغداء
+              </span>
+              {mealPicker('lunch')}
+            </div>
             <div>
               <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">الوجبة المقررة</label>
               <textarea
@@ -491,9 +543,12 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
 
           {/* Dinner */}
           <div className="space-y-3 bg-indigo-50/40 dark:bg-indigo-950/20 p-4 rounded-xl border border-indigo-200/60 dark:border-indigo-800/40">
-            <span className="text-xs font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
-              🍲 وجبة العشاء (الداخلي)
-            </span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
+                🍲 وجبة العشاء (الداخلي)
+              </span>
+              {mealPicker('dinner')}
+            </div>
             <div>
               <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">الوجبة المقررة</label>
               <textarea
@@ -520,7 +575,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
 
       {/* 3. وضعية العمال وحضورهم اليومي */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-850/50">
+        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/50">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
             <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
@@ -822,20 +877,27 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
         </div>
       </div>
 
-      {/* Sticky Save Bar */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 bg-slate-900/90 dark:bg-slate-950/90 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-xl border border-slate-700 dark:border-slate-800 flex items-center gap-4 no-print">
-        <button
-          onClick={onSave}
-          className="flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm shadow-md transition-all cursor-pointer"
-        >
-          <Save className="w-4 h-4" />
-          <span>حفظ التقرير الآن</span>
-        </button>
+      {/* Sticky Autosave Status */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2.5 rounded-full shadow-lg shadow-slate-900/10 border border-slate-200 dark:border-slate-700 flex items-center gap-2.5 no-print">
+        <span className="save-dot">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+        </span>
+        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
+          حفظ تلقائي نشط
+        </span>
         {lastSavedText && (
-          <span className="text-[11px] text-slate-300 font-medium hidden sm:inline">
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium hidden sm:inline">
             {lastSavedText}
           </span>
         )}
+        <button
+          onClick={onSave}
+          title="حفظ يدوي وتأكيد"
+          className="p-1.5 rounded-full text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 transition-colors cursor-pointer"
+        >
+          <Save className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   );
