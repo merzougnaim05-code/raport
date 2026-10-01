@@ -1,6 +1,6 @@
-import React from 'react';
-import { Printer, X, FileDown, FileText } from 'lucide-react';
-import { exportToPdf, exportToWord } from '../utils/exportUtils';
+import React, { useState } from 'react';
+import { Printer, X, FileDown, Loader2 } from 'lucide-react';
+import { exportToPdf } from '../utils/exportUtils';
 
 interface PrintPreviewModalProps {
   isOpen: boolean;
@@ -17,11 +17,23 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const [busy, setBusy] = useState(false);
+
   const handlePrint = () => {
     const prev = document.title;
     document.title = title;
     window.print();
     document.title = prev;
+  };
+
+  const handleDownloadPdf = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await exportToPdf(title);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -40,20 +52,13 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
 
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => exportToPdf(title)}
-            title="تحميل نسخة PDF (تُفتح نافذة نظيفة ثم اختر حفظ PDF)"
-            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-500 rounded-lg shadow-sm transition-colors cursor-pointer"
+            onClick={handleDownloadPdf}
+            disabled={busy}
+            title="تحميل ملف PDF مباشرة"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-500 disabled:opacity-60 rounded-lg shadow-sm transition-colors cursor-pointer"
           >
-            <FileDown className="w-4 h-4" />
-            تحميل PDF
-          </button>
-          <button
-            onClick={() => exportToWord(title)}
-            title="تحميل نسخة Word (.doc)"
-            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm transition-colors cursor-pointer"
-          >
-            <FileText className="w-4 h-4" />
-            تحميل Word
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+            {busy ? 'جاري إنشاء PDF...' : 'تحميل PDF'}
           </button>
           <button
             onClick={handlePrint}

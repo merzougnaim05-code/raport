@@ -21,6 +21,7 @@ interface SidebarProps {
   currentDay: number;
   meta: InstitutionMeta;
   isOpen: boolean;
+  collapsed: boolean;
   onClose: () => void;
   onSelectView: (view: NavView) => void;
   onSelectDay: (day: number) => void;
@@ -33,6 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   currentDay,
   meta,
   isOpen,
+  collapsed,
   onClose,
   onSelectView,
   onSelectDay,
@@ -82,9 +84,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar panel */}
       <aside
-        className={`fixed lg:sticky top-0 right-0 z-40 h-screen w-72 bg-slate-900 text-slate-100 flex flex-col border-l border-slate-800 transition-transform duration-300 ease-in-out no-print ${
-          isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
-        }`}
+        className={`fixed lg:sticky top-3 right-3 z-40 h-[calc(100vh-1.5rem)] w-72 shrink-0 bg-slate-900 text-slate-100 flex flex-col rounded-3xl border border-slate-800 shadow-2xl transition-transform duration-300 ease-in-out no-print ${
+          collapsed ? 'lg:hidden' : ''
+        } ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}
       >
         {/* Sidebar Brand Header */}
         <div className="p-5 border-b border-slate-800/80 flex items-center justify-between">

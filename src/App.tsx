@@ -48,6 +48,7 @@ export default function App() {
   const [currentDay, setCurrentDay] = useState<number>(1);
   const [currentDocKey, setCurrentDocKey] = useState<string>('bon_sortie');
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
 
   // Dark mode state with system preference detection and localStorage persistence
   const [darkMode, setDarkMode] = useState<boolean>(() => {
@@ -306,6 +307,13 @@ export default function App() {
   };
 
   // Navigation helpers
+  const handleToggleSidebar = () => {
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen((prev) => !prev);
+    } else {
+      setSidebarCollapsed((prev) => !prev);
+    }
+  };
   const handleNavigate = (view: NavView, arg?: any) => {
     setCurrentView(view);
     if (view === 'day' && typeof arg === 'number') {
@@ -490,6 +498,7 @@ export default function App() {
           currentDay={currentDay}
           meta={data.meta}
           isOpen={isSidebarOpen}
+          collapsed={sidebarCollapsed}
           onClose={() => setIsSidebarOpen(false)}
           onSelectView={(v) => handleNavigate(v)}
           onSelectDay={(d) => handleNavigate('day', d)}
@@ -504,7 +513,7 @@ export default function App() {
             currentView={currentView}
             currentDay={currentDay}
             onSelectDay={(d) => handleNavigate('day', d)}
-            onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+            onToggleSidebar={handleToggleSidebar}
             onExport={handleExportBackup}
             onImportClick={() => fileInputRef.current?.click()}
             onQuickPrint={() => {
