@@ -98,7 +98,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   });
 
   return (
-    <div className="space-y-6">
+    <div className="rounded-[2rem] border-[3px] border-double border-emerald-600/40 bg-slate-100 dark:bg-slate-900 p-2 sm:p-3 shadow-2xl">
+      <div className="rounded-[1.6rem] border border-dashed border-emerald-600/30 dark:border-emerald-300/25 p-3 sm:p-5 space-y-6">
+      <div className="space-y-6">
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 rounded-2xl p-6 sm:p-8 text-white shadow-lg border border-emerald-800/60 relative overflow-hidden">
         <div className="relative z-10 max-w-2xl">
@@ -140,15 +142,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* KPI Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Filled Days */}
-        <div className="card-soft p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
+        <div className="card-soft p-5 flex flex-col justify-between text-center items-center">
+          <div className="flex items-center justify-center gap-2">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">التقارير المنجزة</span>
             <span className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
               <CalendarDays className="w-4 h-4" />
             </span>
           </div>
           <div className="mt-3">
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex items-baseline justify-center gap-1.5">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{filledDaysCount}</span>
               <span className="text-xs font-semibold text-slate-400">/ 31 يوم</span>
             </div>
@@ -162,15 +164,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Total Workers */}
-        <div className="card-soft p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
+        <div className="card-soft p-5 flex flex-col justify-between text-center items-center">
+          <div className="flex items-center justify-center gap-2">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">إجمالي العمال</span>
             <span className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
               <Users className="w-4 h-4" />
             </span>
           </div>
           <div className="mt-3">
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex items-baseline justify-center gap-1.5">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{data.workers.length}</span>
               <span className="text-xs font-semibold text-slate-400">عامل وموظف</span>
             </div>
@@ -179,15 +181,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Average Attendance */}
-        <div className="card-soft p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
+        <div className="card-soft p-5 flex flex-col justify-between text-center items-center">
+          <div className="flex items-center justify-center gap-2">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">متوسط الحضور</span>
             <span className="p-2 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400">
               <CheckCircle2 className="w-4 h-4" />
             </span>
           </div>
           <div className="mt-3">
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex items-baseline justify-center gap-1.5">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{avgPresent}</span>
               <span className="text-xs font-semibold text-slate-400">وجبة / يوم</span>
             </div>
@@ -196,15 +198,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Absences and Delays */}
-        <div className="card-soft p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
+        <div className="card-soft p-5 flex flex-col justify-between text-center items-center">
+          <div className="flex items-center justify-center gap-2">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">الغيابات والتأخرات</span>
             <span className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
               <AlertTriangle className="w-4 h-4" />
             </span>
           </div>
           <div className="mt-3">
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex items-baseline justify-center gap-1.5">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{totalAbsenceOrDelay}</span>
               <span className="text-xs font-semibold text-slate-400">حالة مسجلة</span>
             </div>
@@ -251,7 +253,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
           <button
             onClick={() => onNavigate('day', currentDay)}
-            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-right transition-all cursor-pointer flex flex-col justify-between"
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
           >
             <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <FileSpreadsheet className="w-5 h-5" />
@@ -264,7 +266,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <button
             onClick={() => onNavigate('doclist')}
-            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-right transition-all cursor-pointer flex flex-col justify-between"
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
           >
             <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <FolderArchive className="w-5 h-5" />
@@ -277,7 +279,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <button
             onClick={() => onNavigate('workers')}
-            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-right transition-all cursor-pointer flex flex-col justify-between"
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
           >
             <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <Users className="w-5 h-5" />
@@ -290,7 +292,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <button
             onClick={() => onNavigate('meals')}
-            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-right transition-all cursor-pointer flex flex-col justify-between"
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
           >
             <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-950/80 text-orange-700 dark:text-orange-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <Utensils className="w-5 h-5" />
@@ -303,7 +305,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <button
             onClick={() => onNavigate('settings')}
-            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-right transition-all cursor-pointer flex flex-col justify-between"
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
           >
             <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <Settings className="w-5 h-5" />
@@ -316,7 +318,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <button
             onClick={onPrintCurrentDay}
-            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-right transition-all cursor-pointer flex flex-col justify-between"
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
           >
             <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <Printer className="w-5 h-5" />
@@ -329,7 +331,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <button
             onClick={() => onNavigate('day', 1)}
-            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-right transition-all cursor-pointer flex flex-col justify-between"
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
           >
             <div className="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950/80 text-teal-800 dark:text-teal-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <CalendarDays className="w-5 h-5" />
@@ -342,7 +344,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <button
             onClick={onExport}
-            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-right transition-all cursor-pointer flex flex-col justify-between"
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
           >
             <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <Download className="w-5 h-5" />
@@ -355,7 +357,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <button
             onClick={onImportClick}
-            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-right transition-all cursor-pointer flex flex-col justify-between"
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
           >
             <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <Upload className="w-5 h-5" />
@@ -473,13 +475,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
             <button
               onClick={() => onNavigate('settings')}
-              className="w-full py-2.5 px-4 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <span>إدارة المعلومات والمظهر</span>
               <ChevronLeft className="w-4 h-4" />
             </button>
           </div>
         </div>
+      </div>
+      </div>
       </div>
     </div>
   );

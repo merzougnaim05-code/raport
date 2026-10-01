@@ -126,6 +126,16 @@ export async function exportToPdf(title: string): Promise<void> {
     return;
   }
 
+  try {
+    await renderAndSavePdf(src, title);
+  } catch (err) {
+    console.error('PDF export failed, falling back to print:', err);
+    window.print();
+  }
+}
+
+async function renderAndSavePdf(src: HTMLElement, title: string): Promise<void> {
+
   // Off-screen clone at A4-friendly width, styled by the same document CSS.
   const wrapper = document.createElement('div');
   wrapper.style.cssText =
