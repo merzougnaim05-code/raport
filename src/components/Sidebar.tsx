@@ -84,12 +84,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar panel */}
       <aside
-        className={`fixed lg:sticky top-3 right-3 z-40 h-[calc(100vh-1.5rem)] w-72 shrink-0 bg-slate-900 text-slate-100 flex flex-col rounded-3xl border border-slate-800 shadow-2xl transition-transform duration-300 ease-in-out no-print ${
+        className={`fixed lg:sticky top-3 right-3 z-40 h-[calc(100vh-1.5rem)] w-72 shrink-0 bg-[#064e3b] text-slate-100 flex flex-col rounded-3xl border border-[#065f46] shadow-2xl transition-transform duration-300 ease-in-out no-print ${
           collapsed ? 'lg:hidden' : ''
         } ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}
       >
         {/* Sidebar Brand Header */}
-        <div className="p-5 border-b border-slate-800/80 flex items-center justify-between">
+        <div className="p-5 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black text-lg shadow-md shadow-emerald-950/50">
               🇩🇿
@@ -251,7 +251,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-800/80 bg-slate-950/40">
+        <div className="p-4 border-t border-white/10 bg-black/20">
           <div className="flex items-center gap-2 text-xs text-slate-400">
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
             <div className="truncate">

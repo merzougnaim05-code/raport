@@ -98,7 +98,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   });
 
   return (
-    <div className="rounded-[2rem] border-[3px] border-double border-emerald-600/40 bg-slate-100 dark:bg-slate-900 p-2 sm:p-3 shadow-2xl">
+    <div className="rounded-[2rem] border-[3px] border-double border-emerald-600/40 bg-[#064e3b] p-2 sm:p-3 shadow-2xl">
       <div className="rounded-[1.6rem] border border-dashed border-emerald-600/30 dark:border-emerald-300/25 p-3 sm:p-5 space-y-6">
       <div className="space-y-6">
       {/* Header Banner */}
