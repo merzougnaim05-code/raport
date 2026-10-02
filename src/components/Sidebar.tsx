@@ -84,14 +84,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar panel */}
       <aside
-        className={`fixed lg:sticky top-3 right-3 z-40 h-[calc(100vh-1.5rem)] w-72 shrink-0 bg-[#064e3b] text-slate-100 flex flex-col rounded-3xl border border-[#065f46] shadow-2xl transition-transform duration-300 ease-in-out no-print ${
+        className={`fixed lg:sticky top-3 right-3 z-40 h-[calc(100vh-1.5rem)] w-72 shrink-0 bg-gradient-to-b from-[#215a3e] to-[#174a32] text-slate-100 flex flex-col rounded-3xl border border-[#fcbb00]/40 shadow-2xl transition-transform duration-300 ease-in-out no-print ${
           collapsed ? 'lg:hidden' : ''
         } ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}
       >
         {/* Sidebar Brand Header */}
         <div className="p-5 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black text-lg shadow-md shadow-emerald-950/50">
+            <div className="w-10 h-10 rounded-full bg-[#f7f4ed] border-2 border-[#fcbb00] text-white flex items-center justify-center text-lg shadow-md shrink-0">
               🇩🇿
             </div>
             <div>
@@ -122,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="بحث فوري: يوم، وثيقة..."
-              className="w-full text-xs pr-10 pl-3 py-2.5 rounded-xl border border-slate-700/60 bg-slate-800/70 text-slate-100 placeholder:text-slate-500 focus:bg-slate-800 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 focus:outline-none"
+              className="w-full text-xs pr-10 pl-3 py-2.5 rounded-xl border border-white/15 bg-[#174a32]/80 text-white placeholder:text-emerald-100/50 focus:bg-[#174a32] focus:ring-2 focus:ring-[#fcbb00]/40 focus:border-[#fcbb00]/60 focus:outline-none"
             />
           </div>
 
@@ -195,11 +195,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-emerald-600/90 text-white shadow-sm shadow-emerald-900/50 font-bold'
-                      : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
+                      ? 'bg-[#fcbb00] text-[#1c2e24] font-black shadow-sm'
+                      : 'text-emerald-50/90 hover:bg-white/10 hover:text-white'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#1c2e24]' : 'text-emerald-200/80'}`} />
                   <span>{item.label}</span>
                 </button>
               );
@@ -231,15 +231,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     title={`اليوم ${d} ${filled ? '(مكتمل جزئيًا)' : ''}`}
                     className={`relative aspect-square flex items-center justify-center rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       active
-                        ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-900/50 scale-105 z-10'
+                        ? 'bg-[#fcbb00] text-[#1c2e24] font-black shadow-md scale-105 z-10'
                         : filled
-                        ? 'bg-slate-800 text-emerald-300 border border-emerald-500/30 hover:bg-slate-700'
-                        : 'bg-slate-800/40 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                        ? 'bg-white/10 text-[#fcbb00] border border-[#fcbb00]/30 hover:bg-white/20'
+                        : 'bg-white/5 text-emerald-100/70 hover:bg-white/15 hover:text-white'
                     }`}
                   >
                     {d}
                     {filled && !active && (
-                      <span className="absolute bottom-1 w-1 h-1 rounded-full bg-emerald-400" />
+                      <span className="absolute bottom-1 w-1 h-1 rounded-full bg-[#fcbb00]" />
                     )}
                   </button>
                 );

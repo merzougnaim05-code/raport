@@ -98,13 +98,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   });
 
   return (
-    <div className="rounded-[2rem] border-[3px] border-double border-emerald-600/40 bg-[#064e3b] p-2 sm:p-3 shadow-2xl">
-      <div className="rounded-[1.6rem] border border-dashed border-emerald-600/30 dark:border-emerald-300/25 p-3 sm:p-5 space-y-6">
+    <div className="rounded-[2rem] border-[3px] border-double border-[#215a3e]/50 bg-[#215a3e] p-2 sm:p-3 shadow-2xl">
+      <div className="rounded-[1.6rem] border border-dashed border-[#fcbb00]/30 p-3 sm:p-5 space-y-6">
       <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 rounded-2xl p-6 sm:p-8 text-white shadow-lg border border-emerald-800/60 relative overflow-hidden">
+      {/* Header Banner — invantaire dark-gold style */}
+      <div className="bg-gradient-to-bl from-[#0f172b] to-[#020618] rounded-2xl p-6 sm:p-8 text-white shadow-xl border-2 border-[#fcbb00]/70 relative overflow-hidden">
+        <div className="absolute top-2 left-4 text-[#fcbb00]/50 text-xs tracking-widest select-none">❖ ❖ ❖</div>
         <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-800/80 text-emerald-200 text-xs font-semibold mb-3 border border-emerald-700/50">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#fcbb00] text-[#1c2e24] text-xs font-black mb-3">
             <Building2 className="w-3.5 h-3.5" />
             <span>{data.meta.institution || 'المؤسسة التعليمية'} — مصلحة الاقتصاد</span>
           </div>
@@ -118,14 +119,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="flex flex-wrap items-center gap-3 mt-6">
             <button
               onClick={() => onNavigate('day', currentDay)}
-              className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-[#fcbb00] hover:bg-[#f99c00] text-[#1c2e24] font-black text-xs sm:text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer"
             >
               <FileSpreadsheet className="w-4 h-4" />
               <span>تحرير تقرير اليوم ({currentDay} {data.meta.monthName})</span>
             </button>
             <button
               onClick={() => onNavigate('doclist')}
-              className="px-4 py-2.5 rounded-xl bg-emerald-900/80 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm border border-emerald-700/60 transition-colors flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/25 transition-colors flex items-center gap-2 cursor-pointer"
             >
               <FolderArchive className="w-4 h-4" />
               <span>دليل الوثائق (19)</span>
