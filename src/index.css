@@ -4,11 +4,15 @@
 
 @layer base {
   body {
-    font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'IBM Plex Sans Arabic', 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
   /* Tabular numbers: professional aligned figures in all tables */
   table {
     font-variant-numeric: tabular-nums;
+  }
+  /* Deep green-navy gradient for dark mode instead of flat black */
+  html.dark body {
+    background: linear-gradient(160deg, #0f172b 0%, #0d1f1a 55%, #020618 100%) fixed;
   }
 }
 

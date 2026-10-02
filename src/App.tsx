@@ -436,7 +436,7 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8fafc] dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors" dir="rtl">
+    <div className="min-h-screen flex flex-col bg-[#f7f4ed] dark:bg-slate-950 text-[#1c2e24] dark:text-slate-100 transition-colors" dir="rtl">
       {/* Hidden file input for backup restore */}
       <input
         type="file"
@@ -449,7 +449,7 @@ export default function App() {
       {/* Splash Entrance Modal */}
       {showSplash && (
         <SplashModal
-          meta={data.meta}
+          data={data}
           onEnter={() => {
             setShowSplash(false);
             try {
