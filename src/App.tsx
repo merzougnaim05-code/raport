@@ -222,6 +222,14 @@ export default function App() {
     if (currentDay > max) setCurrentDay(max);
   }, [data.meta.monthNum, data.meta.year]);
 
+  // Enforce sidebar auto-hide whenever a document view is active (all paths)
+  useEffect(() => {
+    if (currentView === 'doc' || currentView === 'doclist') {
+      setIsSidebarOpen(false);
+      if (window.innerWidth >= 1024) setSidebarCollapsed(true);
+    }
+  }, [currentView, currentDocKey]);
+
   // Workers actions
   const handleAddWorker = () => {
     setData((prev) => {
