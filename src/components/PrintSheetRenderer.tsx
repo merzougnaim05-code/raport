@@ -22,12 +22,13 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 }) => {
   const meta = data.meta;
 
-  // Format shift cells
+  // Format shift cells (mode name + time range from user-defined work times)
   const formatShiftCell = (cell?: ShiftCellData) => {
     if (!cell) return '';
     if (cell.mode === 'راحة') return 'راحة';
-    if (cell.from || cell.to) return `${cell.from || ''} - ${cell.to || ''}`;
-    return cell.mode || '';
+    const range = cell.from || cell.to ? `${cell.from || ''} - ${cell.to || ''}` : '';
+    if (cell.mode && range) return `${cell.mode} ${range}`;
+    return range || cell.mode || '';
   };
 
   // Helper to get weekday name (shared util: handles school-year + current month correctly)
@@ -761,6 +762,8 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
     const rows = currentDoc.rows || {};
     return (
       <div className="space-y-4 text-slate-900 leading-normal font-sans" dir="rtl">
+        {/* Annual program prints in landscape to fit all weekdays */}
+        <style>{'@media print { @page { size: A4 landscape; margin: 8mm; } }'}</style>
         <Letterhead
           meta={meta}
           title="البرنامج السنوي لتوزيع مهام العمال المهنيين"

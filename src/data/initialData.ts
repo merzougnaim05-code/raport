@@ -1,4 +1,4 @@
-import { AppData, DayReportData, MealTemplate } from '../types';
+import { AppData, DayReportData, MealTemplate, ShiftTemplate } from '../types';
 import { getDefaultSchoolYear } from '../utils/dateUtils';
 
 export const CATEGORIES = [
@@ -46,6 +46,12 @@ export const DEFAULT_MEALS: MealTemplate[] = [
   { id: 'm0', name: 'فطور عادي', category: 'breakfast', description: 'حليب، قهوة، خبز، زبدة ومربى' },
   { id: 'm1', name: 'غداء عادي', category: 'lunch', description: 'سلطة متنوعة، طبق رئيسي، خبز وفاكهة' },
   { id: 'm2', name: 'عشاء عادي', category: 'dinner', description: 'حساء الخضر، طبق خفيف، ياغورت' },
+];
+
+export const DEFAULT_SHIFT_TEMPLATES: ShiftTemplate[] = [
+  { id: 's0', name: 'صباحي', from: '08:00', to: '12:00' },
+  { id: 's1', name: 'مسائي', from: '13:00', to: '17:00' },
+  { id: 's2', name: 'ليلي', from: '20:00', to: '06:00' },
 ];
 
 export const ECONOMIST_NOTE_OPTIONS = [
@@ -132,6 +138,7 @@ export function getDefaultAppData(): AppData {
     },
     workers: DEFAULT_SEED_WORKERS,
     mealLibrary: DEFAULT_MEALS.map((m) => ({ ...m })),
+    shiftTemplates: DEFAULT_SHIFT_TEMPLATES.map((s) => ({ ...s })),
     days: {},
     docs: {},
     docRegistry: {},

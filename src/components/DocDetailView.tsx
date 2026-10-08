@@ -131,43 +131,81 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
     );
   };
 
-  // Helper for Shift Cell in schedules
+  // Helper for Shift Cell in schedules (times picked from user-defined work times)
   const renderShiftCell = (
     cell: ShiftCellData | undefined,
     onCellChange: (updated: ShiftCellData) => void
   ) => {
-    const mode = cell?.mode || '';
-    const showTimes = mode && mode !== 'راحة';
+    const templates = data.shiftTemplates || [];
+    const isRest = cell?.mode === 'راحة';
+    const matchIdx = !isRest && (cell?.mode || cell?.from || cell?.to)
+      ? templates.findIndex(
+          (t) =>
+            (cell?.from && cell?.to && cell.from === t.from && cell.to === t.to) ||
+            (cell?.mode && cell.mode === t.name)
+        )
+      : -1;
+    const hasData = Boolean(cell?.mode || cell?.from || cell?.to);
+    const isCustom = !isRest && hasData && matchIdx === -1;
+    const selectVal = isRest ? '__rest' : matchIdx >= 0 ? templates[matchIdx].id : isCustom ? '__custom' : '';
 
     return (
-      <div className="flex flex-col gap-1 min-w-[120px]">
+      <div className="flex flex-col gap-1 min-w-[130px]">
         <select
-          value={mode}
-          onChange={(e) => onCellChange({ ...cell, mode: e.target.value })}
+          value={selectVal}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v === '') onCellChange({});
+            else if (v === '__rest') onCellChange({ mode: 'راحة' });
+            else if (v === '__custom')
+              onCellChange({ mode: cell?.mode === 'راحة' ? '' : cell?.mode || '', from: cell?.from || '', to: cell?.to || '' });
+            else {
+              const t = templates.find((x) => x.id === v);
+              if (t) onCellChange({ mode: t.name, from: t.from, to: t.to });
+            }
+          }}
           className="text-xs p-1.5 rounded-lg border border-slate-200 bg-white focus:outline-none font-semibold"
         >
           <option value="">— اختر الدوام —</option>
-          <option value="راحة">راحة</option>
-          <option value="نهاري">نهاري</option>
-          <option value="ليلي">ليلي</option>
+          <option value="__rest">راحة</option>
+          {templates.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name} ({t.from} - {t.to})
+            </option>
+          ))}
+          <option value="__custom">مخصص...</option>
         </select>
-        {showTimes && (
-          <div className="flex items-center gap-1 mt-1">
+        {matchIdx >= 0 && (
+          <div className="text-[10px] text-emerald-700 font-bold text-center">
+            {templates[matchIdx].from} - {templates[matchIdx].to}
+          </div>
+        )}
+        {isCustom && (
+          <div className="flex flex-col gap-1 mt-1">
             <input
-              type="time"
-              value={cell?.from || ''}
-              onChange={(e) => onCellChange({ ...cell, from: e.target.value })}
-              className="text-[11px] p-1 rounded border border-slate-200 w-1/2"
-              title="من الساعة"
+              type="text"
+              value={cell?.mode && cell.mode !== 'راحة' ? cell.mode : ''}
+              onChange={(e) => onCellChange({ ...cell, mode: e.target.value })}
+              placeholder="اسم الدوام"
+              className="text-[11px] p-1 rounded border border-slate-200"
             />
-            <span className="text-[10px] text-slate-400">-</span>
-            <input
-              type="time"
-              value={cell?.to || ''}
-              onChange={(e) => onCellChange({ ...cell, to: e.target.value })}
-              className="text-[11px] p-1 rounded border border-slate-200 w-1/2"
-              title="إلى الساعة"
-            />
+            <div className="flex items-center gap-1">
+              <input
+                type="time"
+                value={cell?.from || ''}
+                onChange={(e) => onCellChange({ ...cell, from: e.target.value })}
+                className="text-[11px] p-1 rounded border border-slate-200 w-1/2"
+                title="من الساعة"
+              />
+              <span className="text-[10px] text-slate-400">-</span>
+              <input
+                type="time"
+                value={cell?.to || ''}
+                onChange={(e) => onCellChange({ ...cell, to: e.target.value })}
+                className="text-[11px] p-1 rounded border border-slate-200 w-1/2"
+                title="إلى الساعة"
+              />
+            </div>
           </div>
         )}
       </div>

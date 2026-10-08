@@ -88,16 +88,24 @@ export interface ShiftCellData {
   to?: string;
 }
 
+export interface ShiftTemplate {
+  id: string;
+  name: string;
+  from: string;
+  to: string;
+}
+
 export interface AppData {
   meta: InstitutionMeta;
   workers: Worker[];
   mealLibrary: MealTemplate[];
+  shiftTemplates: ShiftTemplate[];
   days: Record<number, DayReportData>;
   docs: Record<string, any>;
   docRegistry: Record<string, DocRegistryEntry[]>;
 }
 
-export type NavView = 'dashboard' | 'day' | 'doclist' | 'doc' | 'workers' | 'meals' | 'settings';
+export type NavView = 'dashboard' | 'day' | 'doclist' | 'doc' | 'workers' | 'meals' | 'shifts' | 'settings';
 
 export interface DocMetaInfo {
   key: string;

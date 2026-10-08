@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AppData, NavView, DayReportData, InstitutionMeta, Worker, MealTemplate } from './types';
+import { AppData, NavView, DayReportData, InstitutionMeta, Worker, MealTemplate, ShiftTemplate } from './types';
 import { getDefaultAppData, createEmptyDay, ARABIC_MONTHS } from './data/initialData';
 import { getDaysInMonth } from './utils/dateUtils';
 import { DOC_LIST } from './data/documentsConfig';
@@ -11,6 +11,7 @@ import { DocListView } from './components/DocListView';
 import { DocDetailView } from './components/DocDetailView';
 import { WorkersView } from './components/WorkersView';
 import { MealsLibraryView } from './components/MealsLibraryView';
+import { ShiftsView } from './components/ShiftsView';
 import { SettingsView } from './components/SettingsView';
 import { PrintPreviewModal } from './components/PrintPreviewModal';
 import { PrintSheetRenderer } from './components/PrintSheetRenderer';
@@ -39,6 +40,7 @@ export default function App() {
           meta: mergedMeta,
           workers: parsed.workers && parsed.workers.length > 0 ? parsed.workers : defaults.workers,
           mealLibrary: parsed.mealLibrary ?? defaults.mealLibrary,
+          shiftTemplates: parsed.shiftTemplates ?? defaults.shiftTemplates,
           days: parsed.days || {},
           docs: parsed.docs || {},
           docRegistry: parsed.docRegistry || {},
@@ -318,6 +320,47 @@ export default function App() {
     });
   };
 
+  // Shift templates (work times) actions
+  const handleAddShift = (tpl: Omit<ShiftTemplate, 'id'>) => {
+    setData((prev) => {
+      const item: ShiftTemplate = {
+        ...tpl,
+        id: `s_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      };
+      const nextData = { ...prev, shiftTemplates: [...prev.shiftTemplates, item] };
+      saveToStorage(nextData);
+      return nextData;
+    });
+    showToast('تمت إضافة توقيت العمل');
+  };
+
+  const handleUpdateShift = (id: string, patch: Partial<ShiftTemplate>) => {
+    setData((prev) => {
+      const updated = prev.shiftTemplates.map((s) => (s.id === id ? { ...s, ...patch } : s));
+      const nextData = { ...prev, shiftTemplates: updated };
+      saveToStorage(nextData);
+      return nextData;
+    });
+  };
+
+  const handleDeleteShift = (id: string) => {
+    const tpl = data.shiftTemplates.find((s) => s.id === id);
+    setConfirmModal({
+      isOpen: true,
+      title: 'حذف توقيت عمل',
+      message: `هل أنت متأكد من حذف توقيت "${tpl?.name || 'هذا التوقيت'}"؟ (الخلايا المسجلة به سابقًا تبقى كما هي)`,
+      onConfirm: () => {
+        setData((prev) => {
+          const nextData = { ...prev, shiftTemplates: prev.shiftTemplates.filter((s) => s.id !== id) };
+          saveToStorage(nextData);
+          return nextData;
+        });
+        setConfirmModal((m) => ({ ...m, isOpen: false }));
+        showToast('تم حذف توقيت العمل');
+      },
+    });
+  };
+
   // Clear day with confirmation
   const handleClearDay = () => {
     setConfirmModal({
@@ -441,6 +484,7 @@ export default function App() {
               meta: { ...defaults.meta, ...(imported.meta || {}) },
               workers: imported.workers || defaults.workers,
               mealLibrary: imported.mealLibrary ?? defaults.mealLibrary,
+              shiftTemplates: imported.shiftTemplates ?? defaults.shiftTemplates,
               days: imported.days || {},
               docs: imported.docs || {},
               docRegistry: imported.docRegistry || {},
@@ -641,6 +685,20 @@ export default function App() {
                 onAddMeal={handleAddMeal}
                 onUpdateMeal={handleUpdateMeal}
                 onDeleteMeal={handleDeleteMeal}
+              />
+            )}
+
+            {currentView === 'shifts' && (
+              <ShiftsView
+                templates={data.shiftTemplates}
+                onAddShift={handleAddShift}
+                onUpdateShift={handleUpdateShift}
+                onDeleteShift={handleDeleteShift}
+                onSave={() => {
+                  saveToStorage(data);
+                  showToast('تم حفظ أوقات العمل بنجاح ✓');
+                }}
+                lastSavedText={lastSavedText}
               />
             )}
 
