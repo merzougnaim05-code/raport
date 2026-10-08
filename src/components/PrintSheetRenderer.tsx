@@ -55,6 +55,24 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
     );
   };
 
+  // Program notes print block: saved notes + blank ruled lines for handwriting
+  const renderProgramNotesPrint = (notes: unknown) => {
+    const saved = blank
+      ? []
+      : (Array.isArray(notes) ? notes.map((n) => String(n || '').trim()).filter(Boolean) : []);
+    return (
+      <div className="text-[11px]">
+        <div className="font-bold mb-1">ملاحظات:</div>
+        {saved.map((n, i) => (
+          <div key={i} className="pr-2 mb-0.5">{i + 1}- {n}</div>
+        ))}
+        {Array.from({ length: Math.max(0, 3 - saved.length) }).map((_, i) => (
+          <div key={`b${i}`} className="border-b border-dotted border-black h-6"></div>
+        ))}
+      </div>
+    );
+  };
+
   // Helper to get weekday name (shared util: handles school-year + current month correctly)
   const getWeekdayName = (n: number) => resolveWeekday(n, meta);
 
@@ -772,6 +790,8 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           <b>تنبيهات هامة:</b> المعني ملزم بالتوقيت المذكور، ارتداء المئزر، احترام توجيهات المصلحة، وكل غياب غير مبرر يترتب عنه الخصم القانوني.
         </div>
 
+        {renderProgramNotesPrint(currentDoc.programNotes)}
+
         <div className="flex justify-around items-start text-center mt-12 text-xs font-bold">
           <div>المقتصد<div className="h-16 w-32 border-b border-dotted border-black mt-2" /></div>
           <div>العامل المكلف<div className="h-16 w-32 border-b border-dotted border-black mt-2" /></div>
@@ -822,6 +842,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
             })}
           </tbody>
         </table>
+        {renderProgramNotesPrint(currentDoc.programNotes)}
         <div className="flex justify-around items-start text-center mt-8 text-xs font-bold">
           <div>المقتصد<div className="h-16 w-32 border-b border-dotted border-black mt-2" /></div>
           <div>مدير المؤسسة<div className="h-16 w-32 border-b border-dotted border-black mt-2" /></div>

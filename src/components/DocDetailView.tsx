@@ -217,6 +217,65 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
   // Document Specific Renderers
   // =========================================================================
 
+  // Helper: program notes editor (fields list + add-note button)
+  const renderProgramNotesEditor = () => {
+    const notes: string[] = currentDocData.programNotes || [];
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <h3 className="text-sm font-bold text-slate-900">ملاحظات</h3>
+          <button
+            onClick={() =>
+              updateDoc((prev) => ({ ...prev, programNotes: [...(prev.programNotes || []), ''] }))
+            }
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>إضافة ملاحظة</span>
+          </button>
+        </div>
+        {notes.length === 0 ? (
+          <p className="text-xs text-slate-400 text-center py-2">
+            لا توجد ملاحظات بعد — اضغط «إضافة ملاحظة» لكتابة ملاحظة جديدة.
+          </p>
+        ) : (
+          notes.map((n, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <span className="text-xs font-black text-slate-400 w-5 text-center shrink-0">{idx + 1}</span>
+              <input
+                type="text"
+                value={n}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  updateDoc((prev) => {
+                    const arr = [...(prev.programNotes || [])];
+                    arr[idx] = v;
+                    return { ...prev, programNotes: arr };
+                  });
+                }}
+                placeholder={`ملاحظة ${idx + 1}...`}
+                className="flex-1 min-w-0 text-xs p-2.5 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 focus:outline-none"
+              />
+              <button
+                onClick={() => {
+                  updateDoc((prev) => {
+                    const arr = [...(prev.programNotes || [])];
+                    arr.splice(idx, 1);
+                    return { ...prev, programNotes: arr };
+                  });
+                }}
+                title="حذف هذه الملاحظة"
+                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer shrink-0"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+    );
+  };
+
   // Simple Docs Renderer (matches 8 documents)
   const renderSimpleDocContent = () => {
     const spec = SIMPLE_DOCS_SPEC[docKey];
@@ -918,6 +977,9 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
             </table>
           </div>
         </div>
+
+        {/* Program notes */}
+        {renderProgramNotesEditor()}
       </div>
     );
   };
@@ -1029,6 +1091,9 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
             </table>
           </div>
         </div>
+
+        {/* Program notes */}
+        {renderProgramNotesEditor()}
       </div>
     );
   };
