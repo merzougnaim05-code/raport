@@ -342,6 +342,10 @@ export default function App() {
       setCurrentDocKey(arg);
     }
     setIsSidebarOpen(false);
+    // Auto-hide sidebar on desktop when opening a document (more reading space)
+    if (view === 'doc' && window.innerWidth >= 1024) {
+      setSidebarCollapsed(true);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -543,6 +547,7 @@ export default function App() {
               else handlePrintDay(false);
             }}
             onGoDashboard={() => handleNavigate('dashboard')}
+            onOpenSplash={() => setShowSplash(true)}
             darkMode={darkMode}
             onToggleDarkMode={toggleDarkMode}
             lastSavedText={lastSavedText}

@@ -9,6 +9,7 @@ import {
   Printer,
   Landmark,
   LayoutDashboard,
+  Home,
   Moon,
   Sun
 } from 'lucide-react';
@@ -23,6 +24,7 @@ interface HeaderProps {
   onImportClick: () => void;
   onQuickPrint: () => void;
   onGoDashboard: () => void;
+  onOpenSplash: () => void;
   darkMode: boolean;
   onToggleDarkMode: () => void;
   lastSavedText?: string;
@@ -38,6 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
   onImportClick,
   onQuickPrint,
   onGoDashboard,
+  onOpenSplash,
   darkMode,
   onToggleDarkMode,
   lastSavedText,
@@ -130,6 +133,15 @@ export const Header: React.FC<HeaderProps> = ({
             <Landmark className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">البوابة</span>
           </a>
+
+          {/* Back to landing button */}
+          <button
+            onClick={onOpenSplash}
+            title="العودة إلى الواجهة"
+            className="p-2 text-emerald-100 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+          >
+            <Home className="w-4 h-4" />
+          </button>
 
           {/* Quick Print Button */}
           <button
