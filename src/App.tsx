@@ -335,6 +335,7 @@ export default function App() {
   // Navigation helpers
   const handleToggleSidebar = () => {
     if (window.innerWidth < 1024) {
+      setSidebarCollapsed(false);
       setIsSidebarOpen((prev) => !prev);
     } else {
       setSidebarCollapsed((prev) => !prev);
@@ -530,7 +531,10 @@ export default function App() {
           meta={data.meta}
           isOpen={isSidebarOpen}
           collapsed={sidebarCollapsed}
-          onClose={() => setIsSidebarOpen(false)}
+          onClose={() => {
+            setIsSidebarOpen(false);
+            if (window.innerWidth >= 1024) setSidebarCollapsed(true);
+          }}
           onSelectView={(v) => handleNavigate(v)}
           onSelectDay={(d) => handleNavigate('day', d)}
           onSelectDoc={(key) => handleNavigate('doc', key)}

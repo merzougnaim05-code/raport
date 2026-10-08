@@ -90,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar panel */}
       <aside
         className={`fixed lg:sticky top-3 right-3 z-40 h-[calc(100vh-1.5rem)] w-72 shrink-0 bg-gradient-to-b from-[#215a3e] to-[#174a32] text-slate-100 flex flex-col rounded-3xl border border-[#fcbb00]/40 shadow-2xl transition-transform duration-300 ease-in-out no-print ${
-          collapsed ? 'lg:hidden' : ''
+          collapsed ? 'hidden' : ''
         } ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}
       >
         {/* Sidebar Brand Header */}
@@ -111,7 +111,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             onClick={onClose}
-            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            title="إخفاء الشريط الجانبي"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -272,7 +273,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
             <div className="truncate">
               <div className="font-semibold text-slate-300">نظام محلي آمن</div>
-              <div className="text-[10px] text-slate-500">حفظ تلقائي للمعلومات • إصدار 2.2</div>
+              <div className="text-[10px] text-slate-500">حفظ تلقائي للمعلومات • إصدار 2.3</div>
             </div>
           </div>
         </div>
