@@ -176,8 +176,9 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
           <option value="__custom">مخصص...</option>
         </select>
         {matchIdx >= 0 && (
-          <div className="text-[10px] text-emerald-700 font-bold text-center">
-            {templates[matchIdx].from} - {templates[matchIdx].to}
+          <div className="text-[10px] text-emerald-700 font-bold text-center leading-tight">
+            <div>من {templates[matchIdx].from}</div>
+            <div>إلى {templates[matchIdx].to}</div>
           </div>
         )}
         {isCustom && (

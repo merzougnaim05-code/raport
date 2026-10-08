@@ -6,6 +6,7 @@ interface PrintPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
+  wide?: boolean;
   children: React.ReactNode;
 }
 
@@ -13,6 +14,7 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
   isOpen,
   onClose,
   title,
+  wide = false,
   children,
 }) => {
   if (!isOpen) return null;
@@ -46,7 +48,9 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
           </div>
           <div>
             <h3 className="text-sm font-bold">{title}</h3>
-            <p className="text-xs text-slate-400">معاينة جاهزة للطباعة على ورق قياس A4</p>
+            <p className="text-xs text-slate-400">
+              {wide ? 'معاينة بورقة عرضية (Landscape) — قياس A4 بالعرض' : 'معاينة جاهزة للطباعة على ورق قياس A4'}
+            </p>
           </div>
         </div>
 
@@ -83,8 +87,8 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
       </div>
 
       {/* Preview paper body */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center bg-slate-800/60">
-        <div id="print-preview-content" className="w-full max-w-[850px] bg-white text-slate-900 rounded-xl shadow-2xl p-8 md:p-12 border border-slate-200 my-auto">
+      <div className="flex-1 overflow-auto p-4 md:p-8 flex justify-center bg-slate-800/60">
+        <div id="print-preview-content" className={`w-full ${wide ? 'max-w-[1120px]' : 'max-w-[850px]'} bg-white text-slate-900 rounded-xl shadow-2xl p-8 md:p-12 border border-slate-200 my-auto`}>
           {children}
         </div>
       </div>

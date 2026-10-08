@@ -100,10 +100,12 @@ export default function App() {
     isOpen: boolean;
     title: string;
     content: React.ReactNode;
+    wide: boolean;
   }>({
     isOpen: false,
     title: '',
     content: null,
+    wide: false,
   });
 
   // Active print sheet for window.print()
@@ -402,12 +404,13 @@ export default function App() {
   };
 
   // Print triggers
-  const openPrintModal = (title: string, content: React.ReactNode) => {
+  const openPrintModal = (title: string, content: React.ReactNode, wide: boolean = false) => {
     setActivePrintContent(content);
     setPrintModal({
       isOpen: true,
       title,
       content,
+      wide,
     });
   };
 
@@ -441,7 +444,7 @@ export default function App() {
         blank={blank}
       />
     );
-    openPrintModal(title, content);
+    openPrintModal(title, content, key === 'barnamij_sanawi');
   };
 
   // Export JSON Backup
@@ -550,6 +553,7 @@ export default function App() {
       <PrintPreviewModal
         isOpen={printModal.isOpen}
         title={printModal.title}
+        wide={printModal.wide}
         onClose={() => setPrintModal((m) => ({ ...m, isOpen: false }))}
       >
         {printModal.content}
