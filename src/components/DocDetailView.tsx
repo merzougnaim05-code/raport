@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AppData, DocMetaInfo, ShiftCellData } from '../types';
 import { DOC_LIST, SIMPLE_DOCS_SPEC } from '../data/documentsConfig';
 import { WEEK_SCHEDULE_DAYS, WEEKDAY_AR } from '../data/initialData';
+import { getDaysInMonth, resolveReportYear, getCanonicalMonthName } from '../utils/dateUtils';
 import { 
   ArrowRight, 
   Printer, 
@@ -996,14 +997,16 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
   // Specialized: Jadwal Ghiyabat (جدول الغيابات)
   const renderJadwalGhiyabatContent = () => {
     const cells = currentDocData.cells || {};
-    const daysCount = 31;
+    const daysCount = getDaysInMonth(data.meta);
+    const reportYear = resolveReportYear(data.meta);
+    const displayMonth = getCanonicalMonthName(data.meta.monthNum) || data.meta.monthName;
 
     return (
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
           <div>
             <h3 className="text-sm font-bold text-slate-900">
-              جدول متابعة الغيابات الشهري ({data.meta.monthName} {data.meta.year})
+              جدول متابعة الغيابات الشهري ({displayMonth} {reportYear})
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
               ط غ = طلب غياب &nbsp;|&nbsp; غ غ م = غياب غير مبرر &nbsp;|&nbsp; ط ت = طلب تعويض

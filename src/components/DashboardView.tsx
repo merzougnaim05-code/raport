@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppData, NavView } from '../types';
 import { DOC_LIST } from '../data/documentsConfig';
-import { resolveReportYear, getWeekdayName } from '../utils/dateUtils';
+import { resolveReportYear, getWeekdayName, getDaysInMonth, getCanonicalMonthName } from '../utils/dateUtils';
 import { 
   CalendarDays, 
   FolderArchive, 
@@ -38,13 +38,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onPrintCurrentDay,
   isDayFilled,
 }) => {
+  // Real month calendar values first (needed by metrics loop below)
+  const calYear = resolveReportYear(data.meta);
+  const calMonth = data.meta.monthNum || new Date().getMonth() + 1;
+  const daysInMonth = getDaysInMonth(data.meta);
+  const displayMonth = getCanonicalMonthName(calMonth) || data.meta.monthName;
   // Compute metrics
   let filledDaysCount = 0;
   let totalPresentCount = 0;
   let presentDaysCount = 0;
   let totalAbsenceOrDelay = 0;
 
-  for (let d = 1; d <= 31; d++) {
+  for (let d = 1; d <= daysInMonth; d++) {
     if (isDayFilled(d)) filledDaysCount++;
     const day = data.days[d];
     if (day) {
@@ -75,9 +80,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const avgPresent = presentDaysCount ? Math.round(totalPresentCount / presentDaysCount) : 0;
 
   // Real month calendar (starts Saturday, like the Algerian work week)
-  const calYear = resolveReportYear(data.meta);
-  const calMonth = data.meta.monthNum || new Date().getMonth() + 1;
-  const daysInMonth = new Date(calYear, calMonth, 0).getDate();
   const firstDow = new Date(calYear, calMonth - 1, 1).getDay(); // 0=Sun..6=Sat
   const leadBlanks = (firstDow + 1) % 7; // offset when week starts Saturday
   const weekHeads = ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
@@ -113,7 +115,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             لوحة قيادة التسيير المالي والمادي
           </h2>
           <p className="text-emerald-100/80 text-xs sm:text-sm mt-2 leading-relaxed">
-            متابعة إحصائيات الإطعام، وجبات التلاميذ والأساتذة، وضعية العمال، واستخراج التقارير الرسمية والـ 19 محضرًا معتمدًا لشهر {data.meta.monthName} {data.meta.year}.
+            متابعة إحصائيات الإطعام، وجبات التلاميذ والأساتذة، وضعية العمال، واستخراج التقارير الرسمية والـ 19 محضرًا معتمدًا لشهر {displayMonth} {calYear}.
           </p>
 
           <div className="flex flex-wrap items-center gap-3 mt-6">
@@ -122,7 +124,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               className="px-5 py-2.5 rounded-xl bg-[#fcbb00] hover:bg-[#f99c00] text-[#1c2e24] font-black text-xs sm:text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer"
             >
               <FileSpreadsheet className="w-4 h-4" />
-              <span>تحرير تقرير اليوم ({currentDay} {data.meta.monthName})</span>
+              <span>تحرير تقرير اليوم ({currentDay} {displayMonth})</span>
             </button>
             <button
               onClick={() => onNavigate('doclist')}
@@ -153,12 +155,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="mt-3">
             <div className="flex items-baseline justify-center gap-1.5">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{filledDaysCount}</span>
-              <span className="text-xs font-semibold text-slate-400">/ 31 يوم</span>
+              <span className="text-xs font-semibold text-slate-400">/ {daysInMonth} يوم</span>
             </div>
             <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mt-3 overflow-hidden">
               <div
                 className="bg-emerald-600 dark:bg-emerald-500 h-1.5 rounded-full transition-all duration-500"
-                style={{ width: `${Math.round((filledDaysCount / 31) * 100)}%` }}
+                style={{ width: `${daysInMonth ? Math.round((filledDaysCount / daysInMonth) * 100) : 0}%` }}
               />
             </div>
           </div>
@@ -377,7 +379,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="lg:col-span-2 card-soft p-6">
           <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">تقويم الشهر — {data.meta.monthName} {calYear}</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">تقويم الشهر — {displayMonth} {calYear}</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">اختر أي يوم لمراجعة أو تدوين تقريره</p>
             </div>
             <div className="flex items-center gap-3 text-[11px] font-bold">

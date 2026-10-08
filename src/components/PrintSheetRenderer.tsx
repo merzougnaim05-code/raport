@@ -2,7 +2,7 @@ import React from 'react';
 import { AppData, DayReportData, ShiftCellData } from '../types';
 import { Letterhead } from './Letterhead';
 import { CATEGORIES, WEEK_SCHEDULE_DAYS } from '../data/initialData';
-import { getWeekdayName as resolveWeekday } from '../utils/dateUtils';
+import { getWeekdayName as resolveWeekday, resolveReportYear, getCanonicalMonthName } from '../utils/dateUtils';
 import { DOC_LIST, SIMPLE_DOCS_SPEC } from '../data/documentsConfig';
 
 interface PrintSheetRendererProps {
@@ -74,7 +74,9 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
       : realDay;
 
     const weekday = getWeekdayName(dayNum);
-    const dateLabel = `يوم ${weekday || ''} — ${dayNum} ${meta.monthName} ${meta.year}`;
+    const reportYear = resolveReportYear(meta);
+    const displayMonth = getCanonicalMonthName(meta.monthNum) || meta.monthName;
+    const dateLabel = `يوم ${weekday || ''} — ${dayNum} ${displayMonth} ${reportYear}`;
 
     // Calculate totals
     const totals = {
@@ -317,7 +319,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
         {/* Date and Signatures */}
         <div className="pt-2 text-[11px]">
           <div className="text-left">
-            <b>حرر بـ:</b> {blank ? '............................... في ...............................' : day.signedAt || `بـ ${meta.municipality} في ${dayNum} ${meta.monthName} ${meta.year}`}
+            <b>حرر بـ:</b> {blank ? '............................... في ...............................' : day.signedAt || `بـ ${meta.municipality} في ${dayNum} ${displayMonth} ${reportYear}`}
           </div>
           <div className="flex justify-around items-start text-center mt-6">
             <div className="w-48">

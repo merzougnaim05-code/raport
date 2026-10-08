@@ -1,6 +1,7 @@
 import React from 'react';
 import { InstitutionMeta } from '../types';
 import { ARABIC_MONTHS } from '../data/initialData';
+import { resolveReportYear, getDaysInMonth, getCanonicalMonthName } from '../utils/dateUtils';
 import { 
   Settings, 
   Save, 
@@ -43,6 +44,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       return upd;
     });
   };
+
+  const resolvedYear = resolveReportYear(meta);
+  const daysInMonth = getDaysInMonth(meta);
+  const canonicalMonth = getCanonicalMonthName(meta.monthNum) || meta.monthName;
+  const monthMismatch = meta.monthName !== canonicalMonth;
 
   return (
     <div className="space-y-6 pb-20">
@@ -243,13 +249,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block">اسم الشهر المعتمد في التقارير</label>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block">اسم الشهر المعتمد في التقارير (تلقائي حسب الرقم)</label>
             <input
               type="text"
-              value={meta.monthName}
-              onChange={(e) => handleChange('monthName', e.target.value)}
-              className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center font-bold text-emerald-800 dark:text-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+              value={canonicalMonth}
+              readOnly
+              title="يُشتق تلقائيًا من رقم الشهر لمنع عدم توافق الأيام"
+              className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/60 text-center font-bold text-emerald-800 dark:text-emerald-400 focus:outline-none cursor-not-allowed"
             />
+            {monthMismatch && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold">
+                تم تصحيح اسم الشهر تلقائيًا إلى «{canonicalMonth}» ليطابق رقم الشهر {meta.monthNum}.
+              </p>
+            )}
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              السنة المحسوبة للتقويم: <b>{resolvedYear}</b> • عدد أيام هذا الشهر: <b>{daysInMonth} يوم</b>
+            </p>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavView, InstitutionMeta } from '../types';
 import { DOC_LIST } from '../data/documentsConfig';
-import { getWeekdayName } from '../utils/dateUtils';
+import { getWeekdayName, getDaysInMonth, getCanonicalMonthName } from '../utils/dateUtils';
 import { 
   LayoutDashboard, 
   CalendarDays, 
@@ -44,9 +44,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const q = searchTerm.trim().toLowerCase();
   const showResults = q.length > 0;
+  const daysInMonth = getDaysInMonth(meta);
+  const displayMonth = getCanonicalMonthName(meta.monthNum) || meta.monthName || 'أفريل';
 
   const matchedDays = showResults
-    ? Array.from({ length: 31 }, (_, i) => i + 1).filter((d) => {
+    ? Array.from({ length: daysInMonth }, (_, i) => i + 1).filter((d) => {
         const wd = getWeekdayName(d, meta);
         return (
           String(d).includes(q) ||
@@ -210,15 +212,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="space-y-2 pt-2 border-t border-slate-800/60">
             <div className="flex items-center justify-between px-3 pb-1">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                أيام الشهر ({meta.monthName || 'أفريل'})
+                أيام الشهر ({displayMonth})
               </span>
               <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/40">
-                31 يوم
+                {daysInMonth} يوم
               </span>
             </div>
 
             <div className="grid grid-cols-6 gap-1.5 px-1">
-              {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => {
+              {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => {
                 const filled = isDayFilled(d);
                 const active = currentView === 'day' && currentDay === d;
                 return (

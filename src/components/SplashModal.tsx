@@ -1,5 +1,6 @@
 import React from 'react';
 import { AppData } from '../types';
+import { getDaysInMonth } from '../utils/dateUtils';
 import {
   ArrowLeft,
   Shield,
@@ -28,7 +29,8 @@ export const SplashModal: React.FC<SplashModalProps> = ({ data, onEnter }) => {
   // Live monthly stats (computed once per portal open)
   let filledDays = 0;
   let lastDayMeals = 0;
-  for (let d = 1; d <= 31; d++) {
+  const daysInMonth = getDaysInMonth(meta);
+  for (let d = 1; d <= daysInMonth; d++) {
     const day = days[d];
     if (!day) continue;
     const hasHc = Object.values(day.headcount || {}).some((c: any) =>
@@ -139,7 +141,7 @@ export const SplashModal: React.FC<SplashModalProps> = ({ data, onEnter }) => {
                   </div>
                   <div className="text-4xl sm:text-5xl font-black text-[#fcbb00] leading-tight mt-1 tabular-nums">
                     {filledDays}
-                    <span className="text-xl sm:text-2xl text-white mr-2">/ 31 يوم</span>
+                    <span className="text-xl sm:text-2xl text-white mr-2">/ {daysInMonth} يوم</span>
                   </div>
                   <div className="text-xs text-emerald-100/85 font-semibold">
                     تقارير يومية منجزة — آخر يوم مسجل: {lastDayMeals > 0 ? `${lastDayMeals} وجبة غداء موزعة` : 'لا يوجد بعد'}
@@ -192,7 +194,7 @@ export const SplashModal: React.FC<SplashModalProps> = ({ data, onEnter }) => {
               <div className="min-w-0">
                 <div className="text-sm font-black text-[#1c2e24]">التقرير اليومي والوثائق</div>
                 <div className="text-[11px] text-[#5c6f64] font-semibold mt-0.5 truncate">
-                  31 يوم • تعداد الإطعام وحضور العمال و19 وثيقة رسمية
+                  {daysInMonth} يوم • تعداد الإطعام وحضور العمال و19 وثيقة رسمية
                 </div>
               </div>
               <span className="shrink-0 inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#215a3e] text-white text-xs font-black group-hover:bg-[#174a32] transition-colors">

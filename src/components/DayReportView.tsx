@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppData, DayReportData } from '../types';
 import { CATEGORIES, STATUS_OPTIONS, ECONOMIST_NOTE_OPTIONS } from '../data/initialData';
-import { getWeekdayName as resolveWeekday } from '../utils/dateUtils';
+import { getWeekdayName as resolveWeekday, resolveReportYear, getCanonicalMonthName, getDaysInMonth } from '../utils/dateUtils';
 import { 
   Printer, 
   Save, 
@@ -64,6 +64,10 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
 
   // Helper to get weekday name (shared util: handles school-year + current month correctly)
   const weekday = resolveWeekday(dayNum, data.meta);
+  // Unified calendar values: resolved year + canonical month + real days count
+  const reportYear = resolveReportYear(data.meta);
+  const displayMonth = getCanonicalMonthName(data.meta.monthNum) || data.meta.monthName;
+  const daysInMonth = getDaysInMonth(data.meta);
 
   // Compute headcount totals
   const totals = {
@@ -344,7 +348,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
           <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
             {weekday && <span className="font-bold text-emerald-800 dark:text-emerald-400">يوم {weekday}</span>}
             <span>•</span>
-            <span>{dayNum} {data.meta.monthName} {data.meta.year}</span>
+            <span>{dayNum} {displayMonth} {reportYear}</span>
             <span>•</span>
             <span className="text-slate-400 dark:text-slate-500">{data.meta.institution}</span>
           </div>
@@ -363,7 +367,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
             </button>
             <button
               onClick={onNextDay}
-              disabled={dayNum >= 31}
+              disabled={dayNum >= daysInMonth}
               className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 cursor-pointer"
             >
               <span>التالي</span>
@@ -955,7 +959,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
               onChange={(e) =>
                 onUpdateDay(dayNum, (prev) => ({ ...prev, signedAt: e.target.value }))
               }
-              placeholder={`مثال: بـ ${data.meta.municipality || 'تالخمت'} في ${dayNum} ${data.meta.monthName} ${data.meta.year}`}
+              placeholder={`مثال: بـ ${data.meta.municipality || 'تالخمت'} في ${dayNum} ${displayMonth} ${reportYear}`}
               className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-750 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 focus:outline-none"
             />
           </div>

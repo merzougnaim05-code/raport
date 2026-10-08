@@ -1,4 +1,5 @@
 import React from 'react';
+import { getDaysInMonth, getCanonicalMonthName } from '../utils/dateUtils';
 import { NavView, InstitutionMeta } from '../types';
 import {
   Menu,
@@ -40,6 +41,8 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleDarkMode,
   lastSavedText,
 }) => {
+  const daysInMonth = getDaysInMonth(meta);
+  const displayMonth = getCanonicalMonthName(meta.monthNum) || meta.monthName;
   return (
     <header className="sticky top-0 z-30 bg-[#215a3e] dark:bg-[#123c28] border-b-[3px] border-[#fcbb00] shadow-md px-3 sm:px-5 py-2.5 no-print transition-colors">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
@@ -65,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="truncate">{meta.institution}</span>
               <span>—</span>
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-[#fcbb00] text-[#1c2e24] font-black tabular-nums">
-                {meta.monthName}
+                {displayMonth}
               </span>
             </div>
           </div>
@@ -95,9 +98,9 @@ export const Header: React.FC<HeaderProps> = ({
               onChange={(e) => onSelectDay(Number(e.target.value))}
               className="text-xs font-bold text-emerald-50 bg-transparent border-0 rounded-lg px-2 py-1 cursor-pointer focus:ring-0 focus:outline-none"
             >
-              {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+              {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
                 <option key={d} value={d} className="text-[#1c2e24]">
-                  اليوم {d} ({meta.monthName})
+                  اليوم {d} ({displayMonth})
                 </option>
               ))}
             </select>

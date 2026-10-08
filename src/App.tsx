@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AppData, NavView, DayReportData, InstitutionMeta, Worker, MealTemplate } from './types';
-import { getDefaultAppData, createEmptyDay } from './data/initialData';
+import { getDefaultAppData, createEmptyDay, ARABIC_MONTHS } from './data/initialData';
+import { getDaysInMonth } from './utils/dateUtils';
 import { DOC_LIST } from './data/documentsConfig';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -28,8 +29,14 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         const defaults = getDefaultAppData();
+        const mergedMeta = { ...defaults.meta, ...(parsed.meta || {}) };
+        // إصلاح تلقائي: اسم الشهر مشتق دائمًا من الرقم لمنع عدم توافق الأيام
+        const mn = Number(mergedMeta.monthNum);
+        if (mn >= 1 && mn <= 12) {
+          mergedMeta.monthName = ARABIC_MONTHS[mn - 1];
+        }
         return {
-          meta: { ...defaults.meta, ...(parsed.meta || {}) },
+          meta: mergedMeta,
           workers: parsed.workers && parsed.workers.length > 0 ? parsed.workers : defaults.workers,
           mealLibrary: parsed.mealLibrary ?? defaults.mealLibrary,
           days: parsed.days || {},
@@ -198,11 +205,22 @@ export default function App() {
   const handleUpdateMeta = (updater: (prev: InstitutionMeta) => InstitutionMeta) => {
     setData((prev) => {
       const updatedMeta = updater(prev.meta);
+      // فرض التوافق: أي تغيير في رقم الشهر يفرض اسم الشهر القانوني
+      const mn = Number(updatedMeta.monthNum);
+      if (mn >= 1 && mn <= 12) {
+        updatedMeta.monthName = ARABIC_MONTHS[mn - 1];
+      }
       const nextData = { ...prev, meta: updatedMeta };
       saveToStorage(nextData);
       return nextData;
     });
   };
+
+  // Clamp selected day whenever the month changes (e.g. 31 -> 28 in February)
+  useEffect(() => {
+    const max = getDaysInMonth(data.meta);
+    if (currentDay > max) setCurrentDay(max);
+  }, [data.meta.monthNum, data.meta.year]);
 
   // Workers actions
   const handleAddWorker = () => {
@@ -317,7 +335,8 @@ export default function App() {
   const handleNavigate = (view: NavView, arg?: any) => {
     setCurrentView(view);
     if (view === 'day' && typeof arg === 'number') {
-      setCurrentDay(arg);
+      const max = getDaysInMonth(data.meta);
+      setCurrentDay(Math.min(Math.max(1, arg), max));
     }
     if (view === 'doc' && typeof arg === 'string') {
       setCurrentDocKey(arg);
@@ -551,7 +570,8 @@ export default function App() {
                   if (currentDay > 1) setCurrentDay((d) => d - 1);
                 }}
                 onNextDay={() => {
-                  if (currentDay < 31) setCurrentDay((d) => d + 1);
+                  const max = getDaysInMonth(data.meta);
+                  if (currentDay < max) setCurrentDay((d) => d + 1);
                 }}
                 onPrintDay={handlePrintDay}
                 onClearDay={handleClearDay}

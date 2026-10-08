@@ -34,6 +34,33 @@ export function resolveReportYear(meta: InstitutionMeta, now: Date = new Date())
   return now.getFullYear();
 }
 
+/** Arabic month names (canonical source — must match initialData.ARABIC_MONTHS). */
+export const CANONICAL_ARABIC_MONTHS = [
+  'جانفي', 'فيفري', 'مارس', 'أفريل', 'ماي', 'جوان',
+  'جويلية', 'أوت', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+];
+
+/** Canonical month name for a month number (1-12). */
+export function getCanonicalMonthName(monthNum: number): string {
+  if (monthNum >= 1 && monthNum <= 12) return CANONICAL_ARABIC_MONTHS[monthNum - 1];
+  return '';
+}
+
+/** Number of days in the currently viewed report month (uses resolved year). */
+export function getDaysInMonth(meta: InstitutionMeta, now: Date = new Date()): number {
+  const m = meta.monthNum && meta.monthNum >= 1 && meta.monthNum <= 12 ? meta.monthNum : now.getMonth() + 1;
+  const y = resolveReportYear(meta, now);
+  return new Date(y, m, 0).getDate();
+}
+
+/** Unified display label for a day: weekday + day + canonical month + resolved year. */
+export function getDayDisplayLabel(dayNum: number, meta: InstitutionMeta, now: Date = new Date()): string {
+  const m = meta.monthNum || now.getMonth() + 1;
+  const y = resolveReportYear(meta, now);
+  const monthName = getCanonicalMonthName(m) || meta.monthName;
+  return `${dayNum} ${monthName} ${y}`;
+}
+
 /** Arabic weekday name for a day number, e.g. 27 سبتمبر 2026 => "الأحد". */
 export function getWeekdayName(dayNum: number, meta: InstitutionMeta, now: Date = new Date()): string {
   const m = meta.monthNum || now.getMonth() + 1;
