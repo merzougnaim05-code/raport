@@ -522,6 +522,7 @@ export default function App() {
           onSelectView={(v) => handleNavigate(v)}
           onSelectDay={(d) => handleNavigate('day', d)}
           onSelectDoc={(key) => handleNavigate('doc', key)}
+          onBackToLanding={() => setShowSplash(true)}
           isDayFilled={isDayFilled}
         />
 
@@ -541,7 +542,7 @@ export default function App() {
               else if (currentView === 'workers') handlePrintWorkers();
               else handlePrintDay(false);
             }}
-            onOpenSplash={() => setShowSplash(true)}
+            onGoDashboard={() => handleNavigate('dashboard')}
             darkMode={darkMode}
             onToggleDarkMode={toggleDarkMode}
             lastSavedText={lastSavedText}

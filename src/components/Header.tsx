@@ -8,6 +8,7 @@ import {
   Upload,
   Printer,
   Landmark,
+  LayoutDashboard,
   Moon,
   Sun
 } from 'lucide-react';
@@ -21,7 +22,7 @@ interface HeaderProps {
   onExport: () => void;
   onImportClick: () => void;
   onQuickPrint: () => void;
-  onOpenSplash: () => void;
+  onGoDashboard: () => void;
   darkMode: boolean;
   onToggleDarkMode: () => void;
   lastSavedText?: string;
@@ -36,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
   onExport,
   onImportClick,
   onQuickPrint,
-  onOpenSplash,
+  onGoDashboard,
   darkMode,
   onToggleDarkMode,
   lastSavedText,
@@ -106,15 +107,29 @@ export const Header: React.FC<HeaderProps> = ({
             </select>
           </div>
 
-          {/* Portal (بوابة) button */}
+          {/* Dashboard button */}
           <button
-            onClick={onOpenSplash}
-            title="العودة إلى البوابة الرسمية"
+            onClick={onGoDashboard}
+            title="العودة إلى لوحة التحكم"
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-lg shadow-sm transition-colors cursor-pointer ${
+              currentView === 'dashboard'
+                ? 'bg-[#fcbb00] text-[#1c2e24]'
+                : 'text-white border border-white/25 hover:bg-white/10'
+            }`}
+          >
+            <LayoutDashboard className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">لوحة التحكم</span>
+          </button>
+
+          {/* Portal (بوابة) button → external unified portal */}
+          <a
+            href="https://service-intendance.pages.dev"
+            title="العودة إلى البوابة الرئيسية"
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-black text-[#1c2e24] bg-[#fcbb00] hover:bg-[#f99c00] rounded-lg shadow-sm transition-colors cursor-pointer"
           >
             <Landmark className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">البوابة</span>
-          </button>
+          </a>
 
           {/* Quick Print Button */}
           <button

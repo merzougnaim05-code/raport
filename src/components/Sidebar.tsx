@@ -13,7 +13,8 @@ import {
   ShieldCheck,
   Search,
   FileText,
-  Utensils
+  Utensils,
+  Home
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -26,6 +27,7 @@ interface SidebarProps {
   onSelectView: (view: NavView) => void;
   onSelectDay: (day: number) => void;
   onSelectDoc: (key: string) => void;
+  onBackToLanding: () => void;
   isDayFilled: (day: number) => boolean;
 }
 
@@ -39,6 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectView,
   onSelectDay,
   onSelectDoc,
+  onBackToLanding,
   isDayFilled,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -253,7 +256,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/10 bg-black/20">
+        <div className="p-4 border-t border-white/10 bg-black/20 space-y-3">
+          <button
+            onClick={() => {
+              onBackToLanding();
+              onClose();
+            }}
+            title="العودة إلى شاشة الواجهة الرئيسية"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-black transition-colors cursor-pointer"
+          >
+            <Home className="w-4 h-4 text-[#fcbb00]" />
+            <span>العودة إلى الواجهة</span>
+          </button>
           <div className="flex items-center gap-2 text-xs text-slate-400">
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
             <div className="truncate">
