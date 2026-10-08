@@ -300,8 +300,8 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
               <b>الأشغال المستعجلة:</b> {blank ? '' : day.worksUrgent || '—'}
             </div>
           </div>
-          <div className="flex gap-1.5">
-            <div className="flex-1 border border-black p-2">
+          <div className="flex gap-1.5 items-stretch">
+            <div className="flex-1 border border-black p-3 min-h-[110px]">
               <b>ملاحظات المقتصد:</b>{' '}
               {blank
                 ? ''
@@ -310,7 +310,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
                     .filter(Boolean)
                     .join(' — ') || day.notesEconomist || 'سير عادي للخدمة.'}
             </div>
-            <div className="flex-1 border border-black p-2">
+            <div className="flex-1 border border-black p-3 min-h-[110px]">
               <b>ملاحظات وتأشيرة المدير:</b> {blank ? '' : day.notesDirector || '—'}
             </div>
           </div>

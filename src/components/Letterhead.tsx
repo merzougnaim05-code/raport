@@ -25,15 +25,17 @@ export const Letterhead: React.FC<LetterheadProps> = ({
         {meta.ministry || 'وزارة التربية الوطنية'}
       </div>
 
-      <div className="flex justify-between items-center text-xs text-slate-600 print:text-black font-medium mt-3 px-1 border-t border-slate-200 print:border-black pt-2">
-        <div>
-          <span className="font-bold text-slate-800 print:text-black">مديرية التربية لولاية:</span>{' '}
-          {meta.wilaya || '—'}
+      <div className="flex justify-between items-start text-xs text-slate-600 print:text-black font-medium mt-3 px-1 border-t border-slate-200 print:border-black pt-2">
+        <div className="text-right">
+          <div>
+            <span className="font-bold text-slate-800 print:text-black">مديرية التربية لولاية:</span>{' '}
+            {meta.wilaya || '—'}
+          </div>
+          <div className="font-black text-emerald-900 print:text-black text-sm mt-1">
+            {meta.institution || '—'}
+          </div>
         </div>
-        <div className="font-bold text-emerald-800 print:text-black text-sm">
-          {meta.institution || '—'}
-        </div>
-        <div>
+        <div className="text-left shrink-0">
           <span className="font-bold text-slate-800 print:text-black">السنة الدراسية:</span>{' '}
           {meta.year || '—'}
         </div>
