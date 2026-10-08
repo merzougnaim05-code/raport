@@ -272,7 +272,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
             <div className="truncate">
               <div className="font-semibold text-slate-300">نظام محلي آمن</div>
-              <div className="text-[10px] text-slate-500">حفظ تلقائي للمعلومات</div>
+              <div className="text-[10px] text-slate-500">حفظ تلقائي للمعلومات • إصدار 2.1</div>
             </div>
           </div>
         </div>
