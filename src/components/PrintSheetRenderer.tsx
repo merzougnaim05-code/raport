@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AppData, DayReportData, ShiftCellData } from '../types';
 import { Letterhead } from './Letterhead';
 import { CATEGORIES, WEEK_SCHEDULE_DAYS } from '../data/initialData';
@@ -22,12 +22,32 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 }) => {
   const meta = data.meta;
 
+  // Landscape orientation for wide tables (annual program). Written into <head>
+  // AFTER the bundled stylesheet so it wins over the default portrait @page.
+  const isLandscapeDoc = type === 'doc' && docKey === 'barnamij_sanawi';
+  useEffect(() => {
+    const id = 'print-orientation-override';
+    let el = document.getElementById(id) as HTMLStyleElement | null;
+    if (!el) {
+      el = document.createElement('style');
+      el.id = id;
+      document.head.appendChild(el);
+    }
+    el.textContent = isLandscapeDoc
+      ? '@media print { @page { size: A4 landscape; margin: 8mm; } }'
+      : '@media print { @page { size: A4 portrait; margin: 10mm 12mm; } }';
+    return () => {
+      const node = document.getElementById(id);
+      if (node) node.textContent = '@media print { @page { size: A4 portrait; margin: 10mm 12mm; } }';
+    };
+  }, [isLandscapeDoc]);
+
   // Format shift cells stacked vertically (mode / from / to) to save column width
   const formatShiftCell = (cell?: ShiftCellData) => {
     if (!cell) return '';
     if (cell.mode === 'راحة') return 'راحة';
     return (
-      <div className="leading-tight">
+      <div className="leading-[1.15] whitespace-nowrap">
         {cell.mode ? <div className="font-bold">{cell.mode}</div> : null}
         {cell.from ? <div>من {cell.from}</div> : null}
         {cell.to ? <div>إلى {cell.to}</div> : null}
@@ -765,9 +785,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
   if (docKey === 'barnamij_sanawi') {
     const rows = currentDoc.rows || {};
     return (
-      <div className="space-y-4 text-slate-900 leading-normal font-sans" dir="rtl">
-        {/* Annual program prints in landscape to fit all weekdays */}
-        <style>{'@media print { @page { size: A4 landscape; margin: 8mm; } }'}</style>
+      <div className="space-y-4 text-slate-900 leading-normal font-sans" dir="rtl" data-landscape="true">
         <Letterhead
           meta={meta}
           title="البرنامج السنوي لتوزيع مهام العمال المهنيين"
@@ -776,13 +794,13 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
         <table className="w-full text-center text-[10px] border-collapse border border-black">
           <thead>
             <tr className="bg-slate-100 font-bold">
-              <th className="border border-black p-1 w-8">الرقم</th>
-              <th className="border border-black p-1 text-right w-28">الاسم واللقب</th>
-              <th className="border border-black p-1 text-right w-24">الوظيفة</th>
+              <th className="border border-black px-[3px] py-[2px] w-8">الرقم</th>
+              <th className="border border-black px-[3px] py-[2px] text-right w-28">الاسم واللقب</th>
+              <th className="border border-black px-[3px] py-[2px] text-right w-24">الوظيفة</th>
               {WEEK_SCHEDULE_DAYS.map((d) => (
-                <th key={d.id} className="border border-black p-1">{d.label}</th>
+                <th key={d.id} className="border border-black px-[3px] py-[2px]">{d.label}</th>
               ))}
-              <th className="border border-black p-1 text-right">الأعمال الموكلة</th>
+              <th className="border border-black px-[3px] py-[2px] text-right">الأعمال الموكلة</th>
             </tr>
           </thead>
           <tbody>
@@ -790,15 +808,15 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
               const rec = rows[w.id] || { tasks: '', schedule: {} };
               return (
                 <tr key={w.id}>
-                  <td className="border border-black p-1 font-bold">{idx + 1}</td>
-                  <td className="border border-black p-1 text-right font-bold">{w.name}</td>
-                  <td className="border border-black p-1 text-right">{w.job}</td>
+                  <td className="border border-black px-[3px] py-[2px] font-bold">{idx + 1}</td>
+                  <td className="border border-black px-[3px] py-[2px] text-right font-bold">{w.name}</td>
+                  <td className="border border-black px-[3px] py-[2px] text-right">{w.job}</td>
                   {WEEK_SCHEDULE_DAYS.map((d) => (
-                    <td key={d.id} className="border border-black p-1">
+                    <td key={d.id} className="border border-black px-[3px] py-[2px]">
                       {blank ? '' : formatShiftCell(rec.schedule?.[d.id])}
                     </td>
                   ))}
-                  <td className="border border-black p-1 text-right">{blank ? '' : rec.tasks}</td>
+                  <td className="border border-black px-[3px] py-[2px] text-right">{blank ? '' : rec.tasks}</td>
                 </tr>
               );
             })}

@@ -136,14 +136,20 @@ export async function exportToPdf(title: string): Promise<void> {
 
 async function renderAndSavePdf(src: HTMLElement, title: string): Promise<void> {
 
+  // Wide tables (e.g. annual program) export in landscape.
+  const landscape =
+    src.hasAttribute('data-landscape') || !!src.querySelector('[data-landscape]');
+
   // Off-screen clone at A4-friendly width, styled by the same document CSS.
+  // Portrait usable width ≈190mm → 794px; landscape ≈277mm → 1158px.
+  const cloneW = landscape ? 1158 : 794;
   const wrapper = document.createElement('div');
   wrapper.style.cssText =
-    'position:fixed;left:-12000px;top:0;width:834px;background:#ffffff;padding:20px;z-index:-1;';
+    `position:fixed;left:-12000px;top:0;width:${cloneW + 40}px;background:#ffffff;padding:20px;z-index:-1;`;
   const clone = src.cloneNode(true) as HTMLElement;
   clone.removeAttribute('id');
-  clone.style.width = '794px';
-  clone.style.maxWidth = '794px';
+  clone.style.width = `${cloneW}px`;
+  clone.style.maxWidth = `${cloneW}px`;
   clone.style.margin = '0';
   wrapper.appendChild(clone);
   document.body.appendChild(wrapper);
@@ -179,9 +185,9 @@ async function renderAndSavePdf(src: HTMLElement, title: string): Promise<void> 
       useCORS: true,
     });
 
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-    const pageW = 210;
-    const pageH = 297;
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: landscape ? 'landscape' : 'portrait' });
+    const pageW = landscape ? 297 : 210;
+    const pageH = landscape ? 210 : 297;
     const margin = 10;
     const usableW = pageW - margin * 2;
     const usableH = pageH - margin * 2;
