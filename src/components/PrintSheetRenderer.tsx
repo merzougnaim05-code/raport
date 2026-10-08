@@ -22,13 +22,17 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 }) => {
   const meta = data.meta;
 
-  // Format shift cells (mode name + time range from user-defined work times)
+  // Format shift cells stacked vertically (mode / from / to) to save column width
   const formatShiftCell = (cell?: ShiftCellData) => {
     if (!cell) return '';
     if (cell.mode === 'راحة') return 'راحة';
-    const range = cell.from || cell.to ? `${cell.from || ''} - ${cell.to || ''}` : '';
-    if (cell.mode && range) return `${cell.mode} ${range}`;
-    return range || cell.mode || '';
+    return (
+      <div className="leading-tight">
+        {cell.mode ? <div className="font-bold">{cell.mode}</div> : null}
+        {cell.from ? <div>من {cell.from}</div> : null}
+        {cell.to ? <div>إلى {cell.to}</div> : null}
+      </div>
+    );
   };
 
   // Helper to get weekday name (shared util: handles school-year + current month correctly)
