@@ -148,6 +148,14 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
     const hasData = Boolean(cell?.mode || cell?.from || cell?.to);
     const isCustom = !isRest && hasData && matchIdx === -1;
     const selectVal = isRest ? '__rest' : matchIdx >= 0 ? templates[matchIdx].id : isCustom ? '__custom' : '';
+    // Colored by state so controls stand out from the background
+    const selectColors = isRest
+      ? 'bg-slate-200 border-slate-400 text-slate-700'
+      : matchIdx >= 0
+        ? 'bg-emerald-100 border-emerald-500 text-emerald-900'
+        : isCustom
+          ? 'bg-amber-100 border-amber-500 text-amber-900'
+          : 'bg-white border-slate-300 text-slate-700';
 
     return (
       <div className="flex flex-col gap-1 min-w-0">
@@ -164,7 +172,7 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
               if (t) onCellChange({ mode: t.name, from: t.from, to: t.to });
             }
           }}
-          className="w-full text-[11px] p-1 rounded-lg border border-slate-200 bg-white focus:outline-none font-semibold"
+          className={`w-full text-[11px] p-1 rounded-lg border-2 focus:outline-none font-semibold cursor-pointer ${selectColors}`}
         >
           <option value="">— اختر الدوام —</option>
           <option value="__rest">راحة</option>
