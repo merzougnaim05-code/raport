@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { AppData, DayReportData, ShiftCellData } from '../types';
+import { AppData, DayReportData, ShiftCellData, SIJL_FIELDS } from '../types';
 import { Letterhead } from './Letterhead';
 import { CATEGORIES, WEEK_SCHEDULE_DAYS } from '../data/initialData';
-import { getWeekdayName as resolveWeekday, resolveReportYear, getCanonicalMonthName } from '../utils/dateUtils';
+import { getWeekdayName as resolveWeekday, resolveReportYear, getCanonicalMonthName, getDaysInMonth } from '../utils/dateUtils';
 import { DOC_LIST, SIMPLE_DOCS_SPEC } from '../data/documentsConfig';
 import { avgDailyShiftHours, computeSijlStats, fmt } from '../utils/sijlUtils';
 
@@ -27,7 +27,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
   // Landscape orientation for wide tables (annual program). Written into <head>
   // AFTER the bundled stylesheet so it wins over the default portrait @page.
-  const isLandscapeDoc = type === 'doc' && docKey === 'barnamij_sanawi';
+  const isLandscapeDoc = type === 'sijl' || (type === 'doc' && docKey === 'barnamij_sanawi');
   useEffect(() => {
     const id = 'print-orientation-override';
     let el = document.getElementById(id) as HTMLStyleElement | null;
@@ -427,6 +427,12 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
     const displayMonth = getCanonicalMonthName(meta.monthNum) || meta.monthName;
     const annualRows = (data.docs?.['barnamij_sanawi']?.rows || {}) as Record<string, any>;
     const todayNum = new Date().getDate();
+    const sijlDaysInMonth = getDaysInMonth(meta);
+    const sijlDays = Array.from({ length: sijlDaysInMonth }, (_, i) => i + 1);
+    const sijlInMonth = (arr?: number[]) =>
+      Array.isArray(arr) ? arr.filter((d) => d >= 1 && d <= sijlDaysInMonth) : [];
+    const sijlHasAny = (rowMarks: any, day: number) =>
+      SIJL_FIELDS.some((f) => sijlInMonth(rowMarks?.[f.id]).includes(day));
 
     const sijlHeader = (title: string, subtitle: string) => (
       <div className="border-[3px] border-double border-black p-3 mb-4">
@@ -472,43 +478,60 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
     // ---- Individual worker sheet ----
     if (sijlWorkerId) {
       const w = data.workers.find((x) => x.id === sijlWorkerId);
+      const rowMarks = blank ? {} : data.sijl[sijlWorkerId] || {};
       const st = blank
         ? null
-        : computeSijlStats(data.sijl[sijlWorkerId], avgDailyShiftHours(annualRows[sijlWorkerId]?.schedule));
-      const detailRows: [string, string][] = st
-        ? [
-            ['عطلة مرضية', `${fmt(st.sick)} يوم`],
-            ['غياب غير شرعي', `${fmt(st.unjust)} يوم`],
-            ['التأخرات', `${fmt(st.late)} ساعة`],
-            ['الخروج قبل الوقت', `${fmt(st.early)} ساعة`],
-            ['طلب تعويض', `${fmt(st.comp)} يوم`],
-            ['عدد ساعات الغياب', st.absHours === null ? '—' : `${fmt(st.absHours)} ساعة`],
-            ['إجمالي الغيابات', `${fmt(st.absDays)} يوم`],
-            ['إجمالي التعويضات', `${fmt(st.compDays)} يوم`],
-            ['الصافي', netLabel(st)],
-          ]
-        : [];
+        : computeSijlStats(rowMarks, avgDailyShiftHours(annualRows[sijlWorkerId]?.schedule), sijlDaysInMonth);
       return (
-        <div className="space-y-4 text-slate-900 leading-normal font-sans" dir="rtl">
+        <div className="space-y-4 text-slate-900 leading-normal font-sans" dir="rtl" data-landscape="true">
           {sijlHeader('سجل الغيابات والتأخرات — ورقة فردية', blank ? 'نسخة رسمية فارغة' : `${displayMonth} ${reportYear}`)}
-          <table className="w-full text-right text-xs border-collapse border-2 border-black">
+          <table className="w-full text-right text-xs border-collapse border-2 border-black mb-2">
             <tbody>
               <tr>
-                <th className="border border-black p-2 bg-slate-100 w-44">الاسم واللقب</th>
+                <th className="border border-black p-2 bg-slate-100 w-40">الاسم واللقب</th>
                 <td className="border border-black p-2 font-black">{blank ? '' : w?.name || ''}</td>
-              </tr>
-              <tr>
-                <th className="border border-black p-2 bg-slate-100">الرتبة / الوظيفة</th>
+                <th className="border border-black p-2 bg-slate-100 w-40">الرتبة / الوظيفة</th>
                 <td className="border border-black p-2 font-bold">{blank ? '' : w?.job || ''}</td>
               </tr>
-              {detailRows.map(([k, v]) => (
-                <tr key={k}>
-                  <th className="border border-black p-2 bg-slate-50 w-44">{k}</th>
-                  <td className="border border-black p-2 font-bold">{v}</td>
-                </tr>
-              ))}
             </tbody>
           </table>
+          <table className="w-full text-center text-[9px] border-collapse border-2 border-black">
+            <thead>
+              <tr className="bg-slate-200 font-black">
+                <th className="border-2 border-black p-1 text-right">الخانة</th>
+                {sijlDays.map((d) => (
+                  <th key={d} className="border border-black p-[1px]">{String(d).padStart(2, '0')}</th>
+                ))}
+                <th className="border-2 border-black p-1">المجموع</th>
+              </tr>
+            </thead>
+            <tbody>
+              {SIJL_FIELDS.map((f) => {
+                const marks = blank ? [] : sijlInMonth((rowMarks as any)?.[f.id]);
+                return (
+                  <tr key={f.id}>
+                    <td className="border-2 border-black p-1 text-right font-bold text-[10px]">{f.label}</td>
+                    {sijlDays.map((d) => (
+                      <td key={d} className="border border-black p-[1px] font-black">{marks.includes(d) ? '1' : ''}</td>
+                    ))}
+                    <td className="border-2 border-black p-1 font-black">{blank ? '' : marks.length}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {st && (
+            <table className="w-full text-center text-[11px] border-collapse border-2 border-black">
+              <tbody>
+                <tr className="font-bold">
+                  <td className="border border-black p-1.5">عدد ساعات الغياب: {st.absHours === null ? '—' : `${fmt(st.absHours)} سا`}</td>
+                  <td className="border border-black p-1.5">إجمالي الغيابات: {fmt(st.absDays)} يوم</td>
+                  <td className="border border-black p-1.5">إجمالي التعويضات: {fmt(st.compDays)} يوم</td>
+                  <td className="border border-black p-1.5 font-black">الصافي: {netLabel(st)}</td>
+                </tr>
+              </tbody>
+            </table>
+          )}
           {sijlFooter()}
         </div>
       );
@@ -516,30 +539,37 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
     // ---- Collective monthly sheet (all workers) ----
     return (
-      <div className="space-y-4 text-slate-900 leading-normal font-sans" dir="rtl">
+      <div className="space-y-4 text-slate-900 leading-normal font-sans" dir="rtl" data-landscape="true">
         {sijlHeader('سجل الغيابات والتأخرات — الورقة الجماعية الشهرية', blank ? 'نسخة رسمية فارغة' : `شهر ${displayMonth} ${reportYear}`)}
-        <table className="w-full text-center text-[11px] border-collapse border-2 border-black">
+        <table className="w-full text-center text-[9px] border-collapse border-2 border-black">
           <thead>
             <tr className="bg-slate-200 font-black">
-              <th className="border-2 border-black p-1.5 w-10">ر.ت</th>
-              <th className="border-2 border-black p-1.5 text-right">الاسم واللقب</th>
-              <th className="border-2 border-black p-1.5">الغيابات (يوم)</th>
-              <th className="border-2 border-black p-1.5">التعويضات (يوم)</th>
-              <th className="border-2 border-black p-1.5">النتيجة</th>
+              <th className="border-2 border-black p-1 w-8">ر.ت</th>
+              <th className="border-2 border-black p-1 text-right">الاسم واللقب</th>
+              {sijlDays.map((d) => (
+                <th key={d} className="border border-black p-[1px]">{String(d).padStart(2, '0')}</th>
+              ))}
+              <th className="border-2 border-black p-1">الغيابات</th>
+              <th className="border-2 border-black p-1">التعويضات</th>
+              <th className="border-2 border-black p-1">النتيجة</th>
             </tr>
           </thead>
           <tbody>
             {data.workers.map((w, idx) => {
+              const rowMarks = blank ? {} : data.sijl[w.id] || {};
               const st = blank
                 ? null
-                : computeSijlStats(data.sijl[w.id], avgDailyShiftHours(annualRows[w.id]?.schedule));
+                : computeSijlStats(rowMarks, avgDailyShiftHours(annualRows[w.id]?.schedule), sijlDaysInMonth);
               return (
                 <tr key={w.id}>
-                  <td className="border border-black p-1.5 font-bold">{idx + 1}</td>
-                  <td className="border border-black p-1.5 text-right font-bold">{w.name}</td>
-                  <td className="border border-black p-1.5">{st ? fmt(st.absDays) : ''}</td>
-                  <td className="border border-black p-1.5">{st ? fmt(st.compDays) : ''}</td>
-                  <td className="border border-black p-1.5 font-black">{st ? netLabel(st) : ''}</td>
+                  <td className="border border-black p-[1px] font-bold">{idx + 1}</td>
+                  <td className="border border-black p-1 text-right font-bold text-[10px]">{w.name}</td>
+                  {sijlDays.map((d) => (
+                    <td key={d} className="border border-black p-[1px] font-black">{sijlHasAny(rowMarks, d) ? '1' : ''}</td>
+                  ))}
+                  <td className="border-2 border-black p-1 font-bold">{st ? fmt(st.absDays) : ''}</td>
+                  <td className="border-2 border-black p-1 font-bold">{st ? fmt(st.compDays) : ''}</td>
+                  <td className="border-2 border-black p-1 font-black">{st ? netLabel(st) : ''}</td>
                 </tr>
               );
             })}

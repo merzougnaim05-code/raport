@@ -96,12 +96,23 @@ export interface ShiftTemplate {
 }
 
 export interface SijlRow {
-  sick?: number;
-  unjust?: number;
-  late?: number;
-  early?: number;
-  comp?: number;
+  /** Day numbers (1-31) marked per category. */
+  sick?: number[];
+  unjust?: number[];
+  late?: number[];
+  early?: number[];
+  comp?: number[];
 }
+
+export type SijlField = 'sick' | 'unjust' | 'late' | 'early' | 'comp';
+
+export const SIJL_FIELDS: { id: SijlField; label: string; unit: string }[] = [
+  { id: 'sick', label: 'عطلة مرضية', unit: 'يوم' },
+  { id: 'unjust', label: 'غياب غير شرعي', unit: 'يوم' },
+  { id: 'late', label: 'التأخرات', unit: 'ساعة' },
+  { id: 'early', label: 'الخروج قبل الوقت', unit: 'ساعة' },
+  { id: 'comp', label: 'طلب تعويض', unit: 'يوم' },
+];
 
 export interface AppData {
   meta: InstitutionMeta;

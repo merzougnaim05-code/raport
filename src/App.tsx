@@ -737,6 +737,7 @@ export default function App() {
                 workers={data.workers}
                 rows={data.sijl}
                 annualRows={data.docs?.['barnamij_sanawi']?.rows || {}}
+                daysInMonth={getDaysInMonth(data.meta)}
                 onUpdateRow={handleUpdateSijlRow}
                 onPrintIndividual={handlePrintSijlIndividual}
                 onPrintCollective={handlePrintSijlCollective}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SijlRow, Worker } from '../types';
+import { SIJL_FIELDS, SijlField, SijlRow, Worker } from '../types';
 import { avgDailyShiftHours, computeSijlStats, fmt } from '../utils/sijlUtils';
 import { ClipboardList, Printer, Save, User } from 'lucide-react';
 
@@ -7,6 +7,7 @@ interface SijlViewProps {
   workers: Worker[];
   rows: Record<string, SijlRow>;
   annualRows: Record<string, any>;
+  daysInMonth: number;
   onUpdateRow: (workerId: string, patch: Partial<SijlRow>) => void;
   onPrintIndividual: (workerId: string) => void;
   onPrintCollective: () => void;
@@ -14,12 +15,11 @@ interface SijlViewProps {
   lastSavedText: string;
 }
 
-const numVal = (v: number | undefined): string => (v ? String(v) : '');
-
 export const SijlView: React.FC<SijlViewProps> = ({
   workers,
   rows,
   annualRows,
+  daysInMonth,
   onUpdateRow,
   onPrintIndividual,
   onPrintCollective,
@@ -27,32 +27,26 @@ export const SijlView: React.FC<SijlViewProps> = ({
   lastSavedText,
 }) => {
   const [selectedId, setSelectedId] = useState<string>(workers[0]?.id || '');
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   const hoursOf = (wid: string) => avgDailyShiftHours(annualRows[wid]?.schedule);
-  const statsOf = (wid: string) => computeSijlStats(rows[wid], hoursOf(wid));
+  const marksOf = (wid: string, f: SijlField): number[] =>
+    Array.isArray(rows[wid]?.[f]) ? (rows[wid]?.[f] as number[]).filter((d) => d >= 1 && d <= daysInMonth) : [];
+
+  const toggleDay = (wid: string, f: SijlField, day: number) => {
+    const cur = marksOf(wid, f);
+    const next = cur.includes(day) ? cur.filter((d) => d !== day) : [...cur, day].sort((a, b) => a - b);
+    onUpdateRow(wid, { [f]: next } as Partial<SijlRow>);
+  };
+
+  const hasAny = (wid: string, day: number) =>
+    SIJL_FIELDS.some((f) => marksOf(wid, f.id).includes(day));
 
   const selWorker = workers.find((w) => w.id === selectedId) || workers[0];
-  const selStats = selWorker ? statsOf(selWorker.id) : null;
-
-  const numInput = (
-    wid: string,
-    field: keyof SijlRow,
-    step: string,
-    title: string
-  ) => (
-    <input
-      type="number"
-      min="0"
-      step={step}
-      value={numVal(rows[wid]?.[field])}
-      onChange={(e) => {
-        const v = e.target.value === '' ? undefined : Number(e.target.value);
-        onUpdateRow(wid, { [field]: v } as Partial<SijlRow>);
-      }}
-      title={title}
-      className="w-full text-center py-1.5 px-1 bg-transparent hover:bg-white dark:hover:bg-slate-800 focus:bg-white dark:focus:bg-slate-800 rounded border border-transparent focus:border-emerald-500 text-xs font-bold focus:outline-none dark:text-white"
-    />
-  );
+  const selStats = selWorker
+    ? computeSijlStats(rows[selWorker.id], hoursOf(selWorker.id), daysInMonth)
+    : null;
+  const selHours = selWorker ? hoursOf(selWorker.id) : null;
 
   return (
     <div className="space-y-6 pb-24">
@@ -68,7 +62,7 @@ export const SijlView: React.FC<SijlViewProps> = ({
             </h2>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            تُحسب ساعات الغياب تلقائيًا من توقيت البرنامج السنوي لكل عامل — أدخل الأيام والساعات فقط.
+            ضع علامة 1 في خانة اليوم لكل غياب أو تأخر — تُحسب المجاميع والساعات تلقائيًا من توقيت البرنامج السنوي.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -89,62 +83,13 @@ export const SijlView: React.FC<SijlViewProps> = ({
         </div>
       </div>
 
-      {/* Entry table */}
+      {/* Individual marking sheet */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-          <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-            رصد الغيابات (بالأيام) والتأخرات (بالساعات)
-          </h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-right text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-100/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold border-b border-slate-200 dark:border-slate-700 text-center">
-                <th className="py-2.5 px-2 border-l border-slate-200 dark:border-slate-700 w-10">ر.ت</th>
-                <th className="py-2.5 px-3 border-l border-slate-200 dark:border-slate-700 text-right min-w-[130px]">العامل</th>
-                <th className="py-2.5 px-2 border-l border-slate-200 dark:border-slate-700 w-24">عطلة مرضية (يوم)</th>
-                <th className="py-2.5 px-2 border-l border-slate-200 dark:border-slate-700 w-24">غياب غير شرعي (يوم)</th>
-                <th className="py-2.5 px-2 border-l border-slate-200 dark:border-slate-700 w-24">التأخرات (ساعة)</th>
-                <th className="py-2.5 px-2 border-l border-slate-200 dark:border-slate-700 w-24">الخروج قبل الوقت (ساعة)</th>
-                <th className="py-2.5 px-2 border-l border-slate-200 dark:border-slate-700 w-24">طلب تعويض (يوم)</th>
-                <th className="py-2.5 px-2 w-24">ساعات الغياب</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {workers.map((w, idx) => {
-                const st = statsOf(w.id);
-                return (
-                  <tr key={w.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/50">
-                    <td className="py-2 px-2 text-center text-slate-500 dark:text-slate-400 font-semibold border-l border-slate-200 dark:border-slate-700">
-                      {idx + 1}
-                    </td>
-                    <td className="py-2 px-3 border-l border-slate-200 dark:border-slate-700">
-                      <div className="font-bold text-slate-900 dark:text-white">{w.name || '—'}</div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400">{w.job || ''}</div>
-                    </td>
-                    <td className="p-1 border-l border-slate-200 dark:border-slate-700">{numInput(w.id, 'sick', '0.5', 'أيام العطلة المرضية')}</td>
-                    <td className="p-1 border-l border-slate-200 dark:border-slate-700">{numInput(w.id, 'unjust', '0.5', 'أيام الغياب غير الشرعي')}</td>
-                    <td className="p-1 border-l border-slate-200 dark:border-slate-700">{numInput(w.id, 'late', '0.5', 'ساعات التأخرات')}</td>
-                    <td className="p-1 border-l border-slate-200 dark:border-slate-700">{numInput(w.id, 'early', '0.5', 'ساعات الخروج قبل الوقت')}</td>
-                    <td className="p-1 border-l border-slate-200 dark:border-slate-700">{numInput(w.id, 'comp', '0.5', 'أيام طلب التعويض')}</td>
-                    <td className="py-2 px-2 text-center font-black text-emerald-800 dark:text-emerald-400">
-                      {st.absHours === null ? '—' : `${fmt(st.absHours)} سا`}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Individual sheet preview */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-4 transition-colors">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
             <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-              الورقة الفردية للعامل
+              الورقة الفردية — ضع 1 في أيام الغياب والتأخر
             </h3>
           </div>
           <div className="flex items-center gap-2">
@@ -170,32 +115,140 @@ export const SijlView: React.FC<SijlViewProps> = ({
           </div>
         </div>
 
-        {selWorker && selStats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            {[
-              { label: 'عطلة مرضية', value: `${fmt(selStats.sick)} يوم` },
-              { label: 'غياب غير شرعي', value: `${fmt(selStats.unjust)} يوم` },
-              { label: 'التأخرات', value: `${fmt(selStats.late)} سا` },
-              { label: 'الخروج قبل الوقت', value: `${fmt(selStats.early)} سا` },
-              { label: 'طلب تعويض', value: `${fmt(selStats.comp)} يوم` },
-              { label: 'ساعات الغياب', value: selStats.absHours === null ? '—' : `${fmt(selStats.absHours)} سا` },
-              { label: 'إجمالي الغيابات', value: `${fmt(selStats.absDays)} يوم` },
-              {
-                label: selStats.netKind === 'abs' ? 'أيام الغياب المتبقية' : selStats.netKind === 'comp' ? 'أيام التعويض المستحقة' : 'الرصيد',
-                value: selStats.netKind === 'zero' ? 'متعادل' : `${fmt(selStats.netDays)} يوم`,
-              },
-            ].map((c) => (
-              <div key={c.label} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800">
-                <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{c.label}</div>
-                <div className="text-sm font-black text-slate-900 dark:text-white mt-1">{c.value}</div>
+        {selWorker && (
+          <div className="p-4 sm:p-5 space-y-4">
+            <div className="text-xs">
+              <span className="font-black text-slate-900 dark:text-white text-sm">{selWorker.name}</span>
+              <span className="text-slate-500 dark:text-slate-400"> — {selWorker.job}</span>
+              <span className="text-slate-500 dark:text-slate-400">
+                {' '}• معدل يوم العمل: <b>{selHours === null ? '— (لا توقيت في السنوي)' : `${fmt(selHours)} سا`}</b>
+              </span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-center text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-100/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold border-b border-slate-200 dark:border-slate-700">
+                    <th className="py-2 px-2 border-l border-slate-200 dark:border-slate-700 text-right min-w-[130px]">الخانة</th>
+                    {days.map((d) => (
+                      <th key={d} className="py-1.5 px-0 border-l border-slate-200 dark:border-slate-700 w-8 text-[10px]">
+                        {String(d).padStart(2, '0')}
+                      </th>
+                    ))}
+                    <th className="py-2 px-2 w-14">المجموع</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {SIJL_FIELDS.map((f) => {
+                    const marks = marksOf(selWorker.id, f.id);
+                    return (
+                      <tr key={f.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/50">
+                        <td className="py-1.5 px-2 font-bold text-slate-800 dark:text-slate-200 border-l border-slate-200 dark:border-slate-700 text-right">
+                          {f.label}
+                        </td>
+                        {days.map((d) => {
+                          const on = marks.includes(d);
+                          return (
+                            <td key={d} className="p-0.5 border-l border-slate-200 dark:border-slate-700">
+                              <button
+                                onClick={() => toggleDay(selWorker.id, f.id, d)}
+                                title={`${f.label} — اليوم ${d}`}
+                                className={`w-7 h-7 rounded-md text-xs font-black transition-all cursor-pointer ${
+                                  on
+                                    ? 'bg-emerald-600 text-white shadow-sm scale-105'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-transparent hover:bg-emerald-100 dark:hover:bg-emerald-950 hover:text-emerald-300'
+                                }`}
+                              >
+                                1
+                              </button>
+                            </td>
+                          );
+                        })}
+                        <td className="py-1.5 px-2 font-black text-emerald-800 dark:text-emerald-400">
+                          {marks.length}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {selStats && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                {[
+                  { label: 'ساعات الغياب', value: selStats.absHours === null ? '—' : `${fmt(selStats.absHours)} سا` },
+                  { label: 'إجمالي الغيابات', value: `${fmt(selStats.absDays)} يوم` },
+                  { label: 'إجمالي التعويضات', value: `${fmt(selStats.compDays)} يوم` },
+                  {
+                    label: selStats.netKind === 'abs' ? 'أيام الغياب' : selStats.netKind === 'comp' ? 'أيام التعويض' : 'الرصيد',
+                    value: selStats.netKind === 'zero' ? 'متعادل' : `${fmt(selStats.netDays)} يوم`,
+                  },
+                ].map((c) => (
+                  <div key={c.label} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800">
+                    <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{c.label}</div>
+                    <div className="text-sm font-black text-slate-900 dark:text-white mt-1">{c.value}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <ClipboardList className="w-3.5 h-3.5 shrink-0" />
+              <span>كل علامة تأخر أو خروج قبل الوقت = ساعة واحدة. الصافي = الغيابات (مرضية + غير شرعي) ناقص التعويضات.</span>
+            </p>
           </div>
         )}
-        <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-          <ClipboardList className="w-3.5 h-3.5 shrink-0" />
-          <span>الصافي = إجمالي الغيابات (مرضية + غير شرعي) ناقص التعويضات: الفائض للغياب أيامُ غياب، والفائض للتعويض أيامُ تعويض.</span>
-        </p>
+      </div>
+
+      {/* Collective register */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
+        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+          <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+            السجل الجماعي الشهري — 1 في أيام الغياب والتأخر
+          </h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-center text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-100/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold border-b border-slate-200 dark:border-slate-700">
+                <th className="py-2 px-2 border-l border-slate-200 dark:border-slate-700 w-10">ر.ت</th>
+                <th className="py-2 px-3 border-l border-slate-200 dark:border-slate-700 text-right min-w-[130px]">العامل</th>
+                {days.map((d) => (
+                  <th key={d} className="py-1.5 px-0 border-l border-slate-200 dark:border-slate-700 w-7 text-[10px]">
+                    {String(d).padStart(2, '0')}
+                  </th>
+                ))}
+                <th className="py-2 px-2 w-16">الغيابات</th>
+                <th className="py-2 px-2 w-16">التعويضات</th>
+                <th className="py-2 px-2 min-w-[90px]">النتيجة</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {workers.map((w, idx) => {
+                const st = computeSijlStats(rows[w.id], hoursOf(w.id), daysInMonth);
+                return (
+                  <tr key={w.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/50">
+                    <td className="py-1.5 px-2 text-slate-500 dark:text-slate-400 font-semibold border-l border-slate-200 dark:border-slate-700">
+                      {idx + 1}
+                    </td>
+                    <td className="py-1.5 px-3 font-bold text-slate-900 dark:text-white border-l border-slate-200 dark:border-slate-700 text-right">
+                      {w.name}
+                    </td>
+                    {days.map((d) => (
+                      <td key={d} className="p-0.5 border-l border-slate-200 dark:border-slate-700 font-black text-emerald-700 dark:text-emerald-400">
+                        {hasAny(w.id, d) ? '1' : ''}
+                      </td>
+                    ))}
+                    <td className="py-1.5 px-2 font-bold border-l border-slate-200 dark:border-slate-700">{fmt(st.absDays)}</td>
+                    <td className="py-1.5 px-2 font-bold border-l border-slate-200 dark:border-slate-700">{fmt(st.compDays)}</td>
+                    <td className="py-1.5 px-2 font-black text-emerald-800 dark:text-emerald-400">
+                      {st.netKind === 'zero' ? '—' : st.netKind === 'abs' ? `غ ${fmt(st.netDays)}` : `ت ${fmt(st.netDays)}`}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {lastSavedText && (

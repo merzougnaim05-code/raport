@@ -38,14 +38,14 @@ export function avgDailyShiftHours(schedule?: Record<string, ShiftCellData>): nu
 }
 
 export interface SijlStats {
-  sick: number;
-  unjust: number;
-  late: number;
-  early: number;
-  comp: number;
+  sick: number[];
+  unjust: number[];
+  late: number[];
+  early: number[];
+  comp: number[];
   /** Total absence days (sick + unjustified). */
   absDays: number;
-  /** Total absence hours: full-day absences × daily hours + delays + early leaves. */
+  /** Total absence hours: full-day absences × daily hours + delays + early leaves (1h each). */
   absHours: number | null;
   compDays: number;
   netKind: 'abs' | 'comp' | 'zero';
@@ -53,21 +53,25 @@ export interface SijlStats {
   netDays: number;
 }
 
-const num = (v: unknown): number => {
-  const n = Number(v);
-  return Number.isFinite(n) && n > 0 ? n : 0;
-};
+const daysIn = (arr: unknown, maxDay: number): number[] =>
+  Array.isArray(arr)
+    ? arr.filter((d) => Number.isInteger(d) && (d as number) >= 1 && (d as number) <= maxDay)
+    : [];
 
-/** Full statistics for one worker row given their average daily hours. */
-export function computeSijlStats(row: SijlRow | undefined, dailyHours: number | null): SijlStats {
-  const sick = num(row?.sick);
-  const unjust = num(row?.unjust);
-  const late = num(row?.late);
-  const early = num(row?.early);
-  const comp = num(row?.comp);
-  const absDays = sick + unjust;
-  const absHours = dailyHours !== null ? absDays * dailyHours + late + early : null;
-  const diff = absDays - comp;
+/**
+ * Full statistics for one worker row given average daily hours.
+ * Each delay / early-leave mark counts as one hour.
+ */
+export function computeSijlStats(row: SijlRow | undefined, dailyHours: number | null, maxDay = 31): SijlStats {
+  const sick = daysIn(row?.sick, maxDay);
+  const unjust = daysIn(row?.unjust, maxDay);
+  const late = daysIn(row?.late, maxDay);
+  const early = daysIn(row?.early, maxDay);
+  const comp = daysIn(row?.comp, maxDay);
+  const absDays = sick.length + unjust.length;
+  const absHours = dailyHours !== null ? absDays * dailyHours + late.length + early.length : null;
+  const compDays = comp.length;
+  const diff = absDays - compDays;
   return {
     sick,
     unjust,
@@ -76,7 +80,7 @@ export function computeSijlStats(row: SijlRow | undefined, dailyHours: number | 
     comp,
     absDays,
     absHours,
-    compDays: comp,
+    compDays,
     netKind: diff > 0 ? 'abs' : diff < 0 ? 'comp' : 'zero',
     netDays: Math.abs(diff),
   };
