@@ -139,6 +139,7 @@ export function getDefaultAppData(): AppData {
     workers: DEFAULT_SEED_WORKERS,
     mealLibrary: DEFAULT_MEALS.map((m) => ({ ...m })),
     shiftTemplates: DEFAULT_SHIFT_TEMPLATES.map((s) => ({ ...s })),
+    sijl: {},
     days: {},
     docs: {},
     docRegistry: {},

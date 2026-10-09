@@ -17,7 +17,8 @@ import {
   Building2,
   ChevronLeft,
   Utensils,
-  Clock
+  Clock,
+  ClipboardList
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -317,6 +318,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">أوقات العمل</div>
               <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">تعريف الدوامات للبرامج</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => onNavigate('sijl')}
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+              <ClipboardList className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">سجل الغيابات</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">التأخرات والأرصدة</div>
             </div>
           </button>
 

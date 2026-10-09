@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AppData, NavView, DayReportData, InstitutionMeta, Worker, MealTemplate, ShiftTemplate } from './types';
+import { AppData, NavView, DayReportData, InstitutionMeta, Worker, MealTemplate, ShiftTemplate, SijlRow } from './types';
 import { getDefaultAppData, createEmptyDay, ARABIC_MONTHS } from './data/initialData';
 import { getDaysInMonth } from './utils/dateUtils';
 import { DOC_LIST } from './data/documentsConfig';
@@ -12,6 +12,7 @@ import { DocDetailView } from './components/DocDetailView';
 import { WorkersView } from './components/WorkersView';
 import { MealsLibraryView } from './components/MealsLibraryView';
 import { ShiftsView } from './components/ShiftsView';
+import { SijlView } from './components/SijlView';
 import { SettingsView } from './components/SettingsView';
 import { PrintPreviewModal } from './components/PrintPreviewModal';
 import { PrintSheetRenderer } from './components/PrintSheetRenderer';
@@ -41,6 +42,7 @@ export default function App() {
           workers: parsed.workers && parsed.workers.length > 0 ? parsed.workers : defaults.workers,
           mealLibrary: parsed.mealLibrary ?? defaults.mealLibrary,
           shiftTemplates: parsed.shiftTemplates ?? defaults.shiftTemplates,
+          sijl: parsed.sijl || {},
           days: parsed.days || {},
           docs: parsed.docs || {},
           docRegistry: parsed.docRegistry || {},
@@ -363,6 +365,15 @@ export default function App() {
     });
   };
 
+  // Sijl (absences register) actions
+  const handleUpdateSijlRow = (workerId: string, patch: Partial<SijlRow>) => {
+    setData((prev) => {
+      const nextData = { ...prev, sijl: { ...prev.sijl, [workerId]: { ...(prev.sijl[workerId] || {}), ...patch } } };
+      saveToStorage(nextData);
+      return nextData;
+    });
+  };
+
   // Clear day with confirmation
   const handleClearDay = () => {
     setConfirmModal({
@@ -433,6 +444,19 @@ export default function App() {
     openPrintModal(title, content);
   };
 
+  const handlePrintSijlCollective = () => {
+    const title = 'سجل الغيابات والتأخرات — الورقة الجماعية';
+    const content = <PrintSheetRenderer type="sijl" data={data} />;
+    openPrintModal(title, content);
+  };
+
+  const handlePrintSijlIndividual = (workerId: string) => {
+    const w = data.workers.find((x) => x.id === workerId);
+    const title = `سجل الغيابات والتأخرات — ورقة ${w?.name || 'العامل'}`;
+    const content = <PrintSheetRenderer type="sijl" data={data} sijlWorkerId={workerId} />;
+    openPrintModal(title, content);
+  };
+
   const handlePrintDoc = (key: string, blank: boolean = false) => {
     const docInfo = DOC_LIST.find((d) => d.key === key);
     const title = `${docInfo?.title || 'وثيقة'}${blank ? ' (نسخة فارغة)' : ''}`;
@@ -488,6 +512,7 @@ export default function App() {
               workers: imported.workers || defaults.workers,
               mealLibrary: imported.mealLibrary ?? defaults.mealLibrary,
               shiftTemplates: imported.shiftTemplates ?? defaults.shiftTemplates,
+              sijl: imported.sijl || {},
               days: imported.days || {},
               docs: imported.docs || {},
               docRegistry: imported.docRegistry || {},
@@ -604,6 +629,7 @@ export default function App() {
               if (currentView === 'day') handlePrintDay(false);
               else if (currentView === 'doc') handlePrintDoc(currentDocKey, false);
               else if (currentView === 'workers') handlePrintWorkers();
+              else if (currentView === 'sijl') handlePrintSijlCollective();
               else handlePrintDay(false);
             }}
             onGoDashboard={() => handleNavigate('dashboard')}
@@ -701,6 +727,22 @@ export default function App() {
                 onSave={() => {
                   saveToStorage(data);
                   showToast('تم حفظ أوقات العمل بنجاح ✓');
+                }}
+                lastSavedText={lastSavedText}
+              />
+            )}
+
+            {currentView === 'sijl' && (
+              <SijlView
+                workers={data.workers}
+                rows={data.sijl}
+                annualRows={data.docs?.['barnamij_sanawi']?.rows || {}}
+                onUpdateRow={handleUpdateSijlRow}
+                onPrintIndividual={handlePrintSijlIndividual}
+                onPrintCollective={handlePrintSijlCollective}
+                onSave={() => {
+                  saveToStorage(data);
+                  showToast('تم حفظ سجل الغيابات بنجاح ✓');
                 }}
                 lastSavedText={lastSavedText}
               />

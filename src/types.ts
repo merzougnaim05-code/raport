@@ -95,17 +95,26 @@ export interface ShiftTemplate {
   to: string;
 }
 
+export interface SijlRow {
+  sick?: number;
+  unjust?: number;
+  late?: number;
+  early?: number;
+  comp?: number;
+}
+
 export interface AppData {
   meta: InstitutionMeta;
   workers: Worker[];
   mealLibrary: MealTemplate[];
   shiftTemplates: ShiftTemplate[];
+  sijl: Record<string, SijlRow>;
   days: Record<number, DayReportData>;
   docs: Record<string, any>;
   docRegistry: Record<string, DocRegistryEntry[]>;
 }
 
-export type NavView = 'dashboard' | 'day' | 'doclist' | 'doc' | 'workers' | 'meals' | 'shifts' | 'settings';
+export type NavView = 'dashboard' | 'day' | 'doclist' | 'doc' | 'workers' | 'meals' | 'shifts' | 'sijl' | 'settings';
 
 export interface DocMetaInfo {
   key: string;

@@ -4,13 +4,15 @@ import { Letterhead } from './Letterhead';
 import { CATEGORIES, WEEK_SCHEDULE_DAYS } from '../data/initialData';
 import { getWeekdayName as resolveWeekday, resolveReportYear, getCanonicalMonthName } from '../utils/dateUtils';
 import { DOC_LIST, SIMPLE_DOCS_SPEC } from '../data/documentsConfig';
+import { avgDailyShiftHours, computeSijlStats, fmt } from '../utils/sijlUtils';
 
 interface PrintSheetRendererProps {
-  type: 'day' | 'workers' | 'doc';
+  type: 'day' | 'workers' | 'doc' | 'sijl';
   data: AppData;
   dayNum?: number;
   docKey?: string;
   blank?: boolean;
+  sijlWorkerId?: string;
 }
 
 export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
@@ -19,6 +21,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
   dayNum = 1,
   docKey = '',
   blank = false,
+  sijlWorkerId = '',
 }) => {
   const meta = data.meta;
 
@@ -412,6 +415,137 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           <div>المقتصد<div className="h-16 w-36 border-b border-dotted border-black mt-2" /></div>
           <div>المدير<div className="h-16 w-36 border-b border-dotted border-black mt-2" /></div>
         </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // SIJL — absences & delays register (individual + collective sheets)
+  // =========================================================================
+  if (type === 'sijl') {
+    const reportYear = resolveReportYear(meta);
+    const displayMonth = getCanonicalMonthName(meta.monthNum) || meta.monthName;
+    const annualRows = (data.docs?.['barnamij_sanawi']?.rows || {}) as Record<string, any>;
+    const todayNum = new Date().getDate();
+
+    const sijlHeader = (title: string, subtitle: string) => (
+      <div className="border-[3px] border-double border-black p-3 mb-4">
+        <div className="flex justify-between items-start text-[11px] font-medium">
+          <div className="text-right">
+            <div className="font-bold">{meta.republic || 'الجمهورية الجزائرية الديمقراطية الشعبية'}</div>
+            <div className="font-bold">{meta.ministry || 'وزارة التربية الوطنية'}</div>
+            <div><span className="font-bold">مديرية التربية لولاية:</span> {meta.wilaya || '—'}</div>
+            <div className="font-black text-sm mt-0.5">{meta.institution || '—'}</div>
+          </div>
+          <div className="text-left shrink-0">
+            <div><span className="font-bold">السنة الدراسية:</span> {meta.year || '—'}</div>
+          </div>
+        </div>
+        <div className="text-center mt-3">
+          <div className="text-[10px] tracking-[0.3em]">❖ ❖ ❖</div>
+          <h2 className="text-xl font-black mt-1">{title}</h2>
+          {subtitle ? <div className="text-xs font-bold text-slate-700 mt-1">{subtitle}</div> : null}
+        </div>
+      </div>
+    );
+
+    const sijlFooter = () => (
+      <div className="pt-2 text-[11px]">
+        <div className="text-left">
+          <b>حرر بـ:</b> {blank ? '............................... في ...............................' : `${meta.municipality} في ${todayNum} ${displayMonth} ${reportYear}`}
+        </div>
+        <div className="mt-6 w-48">
+          <div className="font-bold text-xs">إمضاء المقتصد</div>
+          <div className="text-[11px] text-slate-700 mt-1">{meta.economistName || ''}</div>
+          <div className="h-14 mt-1 border-b border-dotted border-black"></div>
+        </div>
+      </div>
+    );
+
+    const netLabel = (st: { netKind: string; netDays: number }) =>
+      st.netKind === 'abs'
+        ? `أيام غياب: ${fmt(st.netDays)}`
+        : st.netKind === 'comp'
+          ? `أيام تعويض: ${fmt(st.netDays)}`
+          : 'متعادل';
+
+    // ---- Individual worker sheet ----
+    if (sijlWorkerId) {
+      const w = data.workers.find((x) => x.id === sijlWorkerId);
+      const st = blank
+        ? null
+        : computeSijlStats(data.sijl[sijlWorkerId], avgDailyShiftHours(annualRows[sijlWorkerId]?.schedule));
+      const detailRows: [string, string][] = st
+        ? [
+            ['عطلة مرضية', `${fmt(st.sick)} يوم`],
+            ['غياب غير شرعي', `${fmt(st.unjust)} يوم`],
+            ['التأخرات', `${fmt(st.late)} ساعة`],
+            ['الخروج قبل الوقت', `${fmt(st.early)} ساعة`],
+            ['طلب تعويض', `${fmt(st.comp)} يوم`],
+            ['عدد ساعات الغياب', st.absHours === null ? '—' : `${fmt(st.absHours)} ساعة`],
+            ['إجمالي الغيابات', `${fmt(st.absDays)} يوم`],
+            ['إجمالي التعويضات', `${fmt(st.compDays)} يوم`],
+            ['الصافي', netLabel(st)],
+          ]
+        : [];
+      return (
+        <div className="space-y-4 text-slate-900 leading-normal font-sans" dir="rtl">
+          {sijlHeader('سجل الغيابات والتأخرات — ورقة فردية', blank ? 'نسخة رسمية فارغة' : `${displayMonth} ${reportYear}`)}
+          <table className="w-full text-right text-xs border-collapse border-2 border-black">
+            <tbody>
+              <tr>
+                <th className="border border-black p-2 bg-slate-100 w-44">الاسم واللقب</th>
+                <td className="border border-black p-2 font-black">{blank ? '' : w?.name || ''}</td>
+              </tr>
+              <tr>
+                <th className="border border-black p-2 bg-slate-100">الرتبة / الوظيفة</th>
+                <td className="border border-black p-2 font-bold">{blank ? '' : w?.job || ''}</td>
+              </tr>
+              {detailRows.map(([k, v]) => (
+                <tr key={k}>
+                  <th className="border border-black p-2 bg-slate-50 w-44">{k}</th>
+                  <td className="border border-black p-2 font-bold">{v}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {sijlFooter()}
+        </div>
+      );
+    }
+
+    // ---- Collective monthly sheet (all workers) ----
+    return (
+      <div className="space-y-4 text-slate-900 leading-normal font-sans" dir="rtl">
+        {sijlHeader('سجل الغيابات والتأخرات — الورقة الجماعية الشهرية', blank ? 'نسخة رسمية فارغة' : `شهر ${displayMonth} ${reportYear}`)}
+        <table className="w-full text-center text-[11px] border-collapse border-2 border-black">
+          <thead>
+            <tr className="bg-slate-200 font-black">
+              <th className="border-2 border-black p-1.5 w-10">ر.ت</th>
+              <th className="border-2 border-black p-1.5 text-right">الاسم واللقب</th>
+              <th className="border-2 border-black p-1.5">الغيابات (يوم)</th>
+              <th className="border-2 border-black p-1.5">التعويضات (يوم)</th>
+              <th className="border-2 border-black p-1.5">النتيجة</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.workers.map((w, idx) => {
+              const st = blank
+                ? null
+                : computeSijlStats(data.sijl[w.id], avgDailyShiftHours(annualRows[w.id]?.schedule));
+              return (
+                <tr key={w.id}>
+                  <td className="border border-black p-1.5 font-bold">{idx + 1}</td>
+                  <td className="border border-black p-1.5 text-right font-bold">{w.name}</td>
+                  <td className="border border-black p-1.5">{st ? fmt(st.absDays) : ''}</td>
+                  <td className="border border-black p-1.5">{st ? fmt(st.compDays) : ''}</td>
+                  <td className="border border-black p-1.5 font-black">{st ? netLabel(st) : ''}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        {sijlFooter()}
       </div>
     );
   }
