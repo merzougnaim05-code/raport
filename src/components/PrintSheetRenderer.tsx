@@ -436,12 +436,14 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
     const sijlHeader = (title: string, subtitle: string) => (
       <div className="border-[3px] border-double border-black p-3 mb-4">
-        <div className="flex justify-between items-start text-[11px] font-medium">
+        <div className="flex justify-between items-start text-[11px] font-medium gap-2">
           <div className="text-right">
-            <div className="font-bold">{meta.republic || 'الجمهورية الجزائرية الديمقراطية الشعبية'}</div>
-            <div className="font-bold">{meta.ministry || 'وزارة التربية الوطنية'}</div>
             <div><span className="font-bold">مديرية التربية لولاية:</span> {meta.wilaya || '—'}</div>
             <div className="font-black text-sm mt-0.5">{meta.institution || '—'}</div>
+          </div>
+          <div className="text-center">
+            <div className="font-bold">{meta.republic || 'الجمهورية الجزائرية الديمقراطية الشعبية'}</div>
+            <div className="font-bold">{meta.ministry || 'وزارة التربية الوطنية'}</div>
           </div>
           <div className="text-left shrink-0">
             <div><span className="font-bold">السنة الدراسية:</span> {meta.year || '—'}</div>
@@ -460,10 +462,12 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
         <div className="text-left">
           <b>حرر بـ:</b> {blank ? '............................... في ...............................' : `${meta.municipality} في ${todayNum} ${displayMonth} ${reportYear}`}
         </div>
-        <div className="mt-6 w-48">
-          <div className="font-bold text-xs">إمضاء المقتصد</div>
-          <div className="text-[11px] text-slate-700 mt-1">{meta.economistName || ''}</div>
-          <div className="h-14 mt-1 border-b border-dotted border-black"></div>
+        <div className="mt-6 flex justify-end">
+          <div className="w-48 text-center">
+            <div className="font-bold text-xs">إمضاء المقتصد</div>
+            <div className="text-[11px] text-slate-700 mt-1">{meta.economistName || ''}</div>
+            <div className="h-14 mt-1 border-b border-dotted border-black"></div>
+          </div>
         </div>
       </div>
     );
