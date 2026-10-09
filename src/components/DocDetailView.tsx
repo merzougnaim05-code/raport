@@ -14,7 +14,8 @@ import {
   Archive, 
   FileText,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Download
 } from 'lucide-react';
 
 interface DocDetailViewProps {
@@ -899,12 +900,48 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
     const rows = currentDocData.rows || {};
     const currentRec = rows[selectedWorker] || { tasks: '', schedule: {} };
 
+    // Import timing + tasks for this worker from the annual program
+    const annualRows = data.docs?.['barnamij_sanawi']?.rows || {};
+    const annualRec = annualRows[selectedWorker] || null;
+    const hasAnnualData = Boolean(
+      annualRec && ((annualRec.tasks || '').trim() || Object.keys(annualRec.schedule || {}).length > 0)
+    );
+    const hasCurrentData = Boolean(
+      (currentRec.tasks || '').trim() || Object.keys(currentRec.schedule || {}).length > 0
+    );
+
+    const handleImportFromSanawi = () => {
+      if (!annualRec) return;
+      if (
+        hasCurrentData &&
+        !window.confirm('سيتم استبدال توقيت ومهام هذا العامل في البرنامج الفردي ببياناته من البرنامج السنوي. هل ترغب في المتابعة؟')
+      ) {
+        return;
+      }
+      updateDoc((prev) => {
+        const r = { ...(prev.rows || {}) };
+        r[selectedWorker] = JSON.parse(JSON.stringify(annualRec));
+        return { ...prev, rows: r };
+      });
+    };
+
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
-          <h3 className="text-sm font-bold text-slate-900 pb-3 mb-4 border-b border-slate-100">
-            اختيار العامل والمهام المسندة
-          </h3>
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-100">
+            <h3 className="text-sm font-bold text-slate-900">
+              اختيار العامل والمهام المسندة
+            </h3>
+            <button
+              onClick={handleImportFromSanawi}
+              disabled={!hasAnnualData}
+              title={hasAnnualData ? 'نسخ توقيت ومهام هذا العامل من البرنامج السنوي' : 'لا توجد بيانات لهذا العامل في البرنامج السنوي بعد'}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-40 disabled:cursor-not-allowed border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>استيراد من البرنامج السنوي</span>
+            </button>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-semibold text-slate-600 block mb-1">العامل المعني</label>
