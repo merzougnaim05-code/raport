@@ -150,7 +150,7 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
     const selectVal = isRest ? '__rest' : matchIdx >= 0 ? templates[matchIdx].id : isCustom ? '__custom' : '';
 
     return (
-      <div className="flex flex-col gap-1 min-w-[130px]">
+      <div className="flex flex-col gap-1 min-w-0">
         <select
           value={selectVal}
           onChange={(e) => {
@@ -164,7 +164,7 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
               if (t) onCellChange({ mode: t.name, from: t.from, to: t.to });
             }
           }}
-          className="text-xs p-1.5 rounded-lg border border-slate-200 bg-white focus:outline-none font-semibold"
+          className="w-full text-[11px] p-1 rounded-lg border border-slate-200 bg-white focus:outline-none font-semibold"
         >
           <option value="">— اختر الدوام —</option>
           <option value="__rest">راحة</option>
@@ -188,25 +188,22 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
               value={cell?.mode && cell.mode !== 'راحة' ? cell.mode : ''}
               onChange={(e) => onCellChange({ ...cell, mode: e.target.value })}
               placeholder="اسم الدوام"
-              className="text-[11px] p-1 rounded border border-slate-200"
+              className="w-full text-[11px] p-1 rounded border border-slate-200"
             />
-            <div className="flex items-center gap-1">
-              <input
-                type="time"
-                value={cell?.from || ''}
-                onChange={(e) => onCellChange({ ...cell, from: e.target.value })}
-                className="text-[11px] p-1 rounded border border-slate-200 w-1/2"
-                title="من الساعة"
-              />
-              <span className="text-[10px] text-slate-400">-</span>
-              <input
-                type="time"
-                value={cell?.to || ''}
-                onChange={(e) => onCellChange({ ...cell, to: e.target.value })}
-                className="text-[11px] p-1 rounded border border-slate-200 w-1/2"
-                title="إلى الساعة"
-              />
-            </div>
+            <input
+              type="time"
+              value={cell?.from || ''}
+              onChange={(e) => onCellChange({ ...cell, from: e.target.value })}
+              className="w-full text-[11px] p-1 rounded border border-slate-200"
+              title="من الساعة"
+            />
+            <input
+              type="time"
+              value={cell?.to || ''}
+              onChange={(e) => onCellChange({ ...cell, to: e.target.value })}
+              className="w-full text-[11px] p-1 rounded border border-slate-200"
+              title="إلى الساعة"
+            />
           </div>
         )}
       </div>
@@ -1027,15 +1024,15 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
             <table className="w-full text-center text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                  <th className="py-2.5 px-3 w-10 border-l border-slate-200">ر.ت</th>
-                  <th className="py-2.5 px-3 border-l border-slate-200 text-right min-w-[130px]">الاسم واللقب</th>
-                  <th className="py-2.5 px-3 border-l border-slate-200 text-right min-w-[120px]">الوظيفة</th>
+                  <th className="py-2 px-2 w-8 border-l border-slate-200">ر.ت</th>
+                  <th className="py-2 px-2 border-l border-slate-200 text-right min-w-[100px]">الاسم واللقب</th>
+                  <th className="py-2 px-2 border-l border-slate-200 text-right min-w-[90px]">الوظيفة</th>
                   {WEEK_SCHEDULE_DAYS.map((d) => (
-                    <th key={d.id} className="py-2.5 px-2 border-l border-slate-200 min-w-[120px]">
+                    <th key={d.id} className="py-2 px-1 border-l border-slate-200 min-w-[92px]">
                       {d.label}
                     </th>
                   ))}
-                  <th className="py-2.5 px-3 min-w-[160px]">الأعمال الموكلة</th>
+                  <th className="py-2 px-2 min-w-[120px]">الأعمال الموكلة</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
