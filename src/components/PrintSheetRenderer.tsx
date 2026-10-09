@@ -818,7 +818,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
               <th className="border border-black px-[3px] py-[2px] text-right w-28">الاسم واللقب</th>
               <th className="border border-black px-[3px] py-[2px] text-right w-24">الوظيفة</th>
               {WEEK_SCHEDULE_DAYS.map((d) => (
-                <th key={d.id} className="border border-black px-[3px] py-[2px]">{d.label}</th>
+                <th key={d.id} className="border border-black px-[3px] py-[2px] w-[1%] whitespace-nowrap">{d.label}</th>
               ))}
               <th className="border border-black px-[3px] py-[2px] text-right">الأعمال الموكلة</th>
             </tr>
@@ -832,7 +832,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
                   <td className="border border-black px-[3px] py-[2px] text-right font-bold">{w.name}</td>
                   <td className="border border-black px-[3px] py-[2px] text-right">{w.job}</td>
                   {WEEK_SCHEDULE_DAYS.map((d) => (
-                    <td key={d.id} className="border border-black px-[3px] py-[2px]">
+                    <td key={d.id} className="border border-black px-[3px] py-[2px] w-[1%]">
                       {blank ? '' : formatShiftCell(rec.schedule?.[d.id])}
                     </td>
                   ))}
