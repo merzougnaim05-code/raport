@@ -436,14 +436,14 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
     const sijlHeader = (title: string, subtitle: string) => (
       <div className="border-[3px] border-double border-black p-3 mb-4">
-        <div className="flex justify-between items-start text-[11px] font-medium gap-2">
+        <div className="text-center">
+          <div className="font-bold text-[13px]">{meta.republic || 'الجمهورية الجزائرية الديمقراطية الشعبية'}</div>
+          <div className="font-bold text-[13px]">{meta.ministry || 'وزارة التربية الوطنية'}</div>
+        </div>
+        <div className="flex justify-between items-start text-[10px] font-medium mt-2">
           <div className="text-right">
             <div><span className="font-bold">مديرية التربية لولاية:</span> {meta.wilaya || '—'}</div>
-            <div className="font-black text-sm mt-0.5">{meta.institution || '—'}</div>
-          </div>
-          <div className="text-center">
-            <div className="font-bold">{meta.republic || 'الجمهورية الجزائرية الديمقراطية الشعبية'}</div>
-            <div className="font-bold">{meta.ministry || 'وزارة التربية الوطنية'}</div>
+            <div className="font-black text-xs mt-0.5">{meta.institution || '—'}</div>
           </div>
           <div className="text-left shrink-0">
             <div><span className="font-bold">السنة الدراسية:</span> {meta.year || '—'}</div>
