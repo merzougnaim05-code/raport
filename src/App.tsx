@@ -14,6 +14,7 @@ import { MealsLibraryView } from './components/MealsLibraryView';
 import { ShiftsView } from './components/ShiftsView';
 import { SijlView } from './components/SijlView';
 import { ModawamaView } from './components/ModawamaView';
+import { TasnifView } from './components/TasnifView';
 import { SettingsView } from './components/SettingsView';
 import { PrintPreviewModal } from './components/PrintPreviewModal';
 import { PrintSheetRenderer } from './components/PrintSheetRenderer';
@@ -814,6 +815,8 @@ export default function App() {
                 lastSavedText={lastSavedText}
               />
             )}
+
+            {currentView === 'tasnif' && <TasnifView />}
 
             {currentView === 'settings' && (
               <SettingsView

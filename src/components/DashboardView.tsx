@@ -19,7 +19,8 @@ import {
   Utensils,
   Clock,
   ClipboardList,
-  Palmtree
+  Palmtree,
+  Archive
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -345,6 +346,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">مداومة العطل</div>
               <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">برامج العطل المدرسية</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => onNavigate('tasnif')}
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-950/80 text-violet-800 dark:text-violet-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+              <Archive className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">تصنيف مصلحة الاقتصاد</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">أغلفة 2025 طبق الأصل</div>
             </div>
           </button>
 
