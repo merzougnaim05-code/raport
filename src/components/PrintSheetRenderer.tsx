@@ -158,7 +158,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
         : Array.from({ length: 3 }, () => ({ name: '', duration: '', reason: '', notes: '' }));
 
     return (
-      <div className="space-y-4 text-slate-900 leading-normal font-sans" dir="rtl">
+      <div className="space-y-2 text-slate-900 leading-tight font-sans" dir="rtl">
         <Letterhead
           meta={meta}
           title="التقرير اليومي للمصالح الاقتصادية"
@@ -167,8 +167,8 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
         {/* Headcount Table */}
         <div>
-          <div className="text-xs font-bold mb-1">أولاً: تعداد المستفيدين من الإطعام</div>
-          <table className="w-full text-center text-[11px] border-collapse border border-black">
+          <div className="text-xs font-bold mb-0.5">أولاً: تعداد المستفيدين من الإطعام</div>
+          <table className="w-full text-center text-[10px] border-collapse border border-black">
             <thead>
               <tr className="bg-slate-100 font-bold">
                 <th rowSpan={2} className="border border-black p-1 text-right w-28">الفئة</th>
@@ -217,8 +217,8 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
         {/* Meals Table */}
         <div>
-          <div className="text-xs font-bold mb-1">ثانيًا: الوجبات الغذائية المقررة والمقدمة</div>
-          <table className="w-full text-right text-[11px] border-collapse border border-black">
+          <div className="text-xs font-bold mb-0.5">ثانيًا: الوجبات الغذائية المقررة والمقدمة</div>
+          <table className="w-full text-right text-[10px] border-collapse border border-black">
             <thead>
               <tr className="bg-slate-100 font-bold text-center">
                 <th className="border border-black p-1 w-24">الوجبة</th>
@@ -248,20 +248,20 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
         {/* Worker daily presence table: only absentees are shown to fit one page */}
         <div>
-          <div className="text-xs font-bold mb-1">ثالثًا: وضعية وحضور العمال المهنيين وموظفي الخدمات</div>
+          <div className="text-xs font-bold mb-0.5">ثالثًا: وضعية وحضور العمال المهنيين وموظفي الخدمات</div>
           {(() => {
             const isPresent = (s?: string) => !s || s === 'حاضر' || s === 'يوم كامل';
             if (!blank) {
               const absent = data.workers.filter((w) => !isPresent(day.workerStatus?.[w.id]));
               if (absent.length === 0) {
                 return (
-                  <div className="border border-black p-2 text-center text-xs font-bold">
+                  <div className="border border-black p-1.5 text-center text-xs font-bold">
                     لا يوجد غياب — جميع العمال حاضرون.
                   </div>
                 );
               }
               return (
-                <table className="w-full text-right text-[11px] border-collapse border border-black">
+                <table className="w-full text-right text-[10px] border-collapse border border-black">
                   <thead>
                     <tr className="bg-slate-100 font-bold text-center">
                       <th className="border border-black p-1 w-10">ر.ت</th>
@@ -288,7 +288,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
               );
             }
             return (
-              <table className="w-full text-right text-[11px] border-collapse border border-black">
+              <table className="w-full text-right text-[10px] border-collapse border border-black">
                 <thead>
                   <tr className="bg-slate-100 font-bold text-center">
                     <th className="border border-black p-1 w-10">ر.ت</th>
@@ -316,8 +316,8 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
         {/* Attendance & Irregularities */}
         <div>
-          <div className="text-xs font-bold mb-1">رابعًا: سجل المواظبة (التغيبات والتأخرات)</div>
-          <table className="w-full text-right text-[11px] border-collapse border border-black">
+          <div className="text-xs font-bold mb-0.5">رابعًا: سجل المواظبة (التغيبات والتأخرات)</div>
+          <table className="w-full text-right text-[10px] border-collapse border border-black">
             <thead>
               <tr className="bg-slate-100 font-bold text-center">
                 <th className="border border-black p-1 w-10">ر.ت</th>
@@ -342,20 +342,20 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
         </div>
 
         {/* Facilities & Works: each in its own frame */}
-        <div className="text-[11px] space-y-1.5 pt-1">
-          <div className="border border-black p-2">
+        <div className="text-[10px] space-y-1 pt-0.5">
+          <div className="border border-black p-1.5">
             <b>الوضعية وحالة المحلات:</b> {blank ? '' : day.facilitiesStatus || 'المحلات في حالة حسنة.'}
           </div>
-          <div className="flex gap-1.5">
-            <div className="flex-1 border border-black p-2">
+          <div className="flex gap-1">
+            <div className="flex-1 border border-black p-1.5">
               <b>الأشغال المنجزة:</b> {blank ? '' : day.worksDone || '—'}
             </div>
-            <div className="flex-1 border border-black p-2">
+            <div className="flex-1 border border-black p-1.5">
               <b>الأشغال المستعجلة:</b> {blank ? '' : day.worksUrgent || '—'}
             </div>
           </div>
-          <div className="flex gap-1.5 items-stretch">
-            <div className="flex-1 border border-black p-3 min-h-[110px]">
+          <div className="flex gap-1 items-stretch">
+            <div className="flex-1 border border-black p-2 min-h-[80px]">
               <b>ملاحظات المقتصد:</b>{' '}
               {blank
                 ? ''
@@ -364,27 +364,27 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
                     .filter(Boolean)
                     .join(' — ') || day.notesEconomist || 'سير عادي للخدمة.'}
             </div>
-            <div className="flex-1 border border-black p-3 min-h-[110px]">
+            <div className="flex-1 border border-black p-2 min-h-[80px]">
               <b>ملاحظات وتأشيرة المدير:</b> {blank ? '' : day.notesDirector || '—'}
             </div>
           </div>
         </div>
 
         {/* Date and Signatures */}
-        <div className="pt-2 text-[11px]">
+        <div className="pt-1 text-[10px]">
           <div className="text-left">
             <b>حرر بـ:</b> {blank ? '............................... في ...............................' : day.signedAt || `بـ ${meta.municipality} في ${dayNum} ${displayMonth} ${reportYear}`}
           </div>
-          <div className="flex justify-around items-start text-center mt-6">
+          <div className="flex justify-around items-start text-center mt-3">
             <div className="w-48">
               <div className="font-bold text-xs">مقتصد المؤسسة</div>
-              <div className="text-[11px] text-slate-700 mt-1">{meta.economistName || ''}</div>
-              <div className="h-14 mt-1 border-b border-dotted border-black"></div>
+              <div className="text-[10px] text-slate-700 mt-1">{meta.economistName || ''}</div>
+              <div className="h-8 mt-1 border-b border-dotted border-black"></div>
             </div>
             <div className="w-48">
               <div className="font-bold text-xs">مدير المؤسسة</div>
-              <div className="text-[11px] text-slate-700 mt-1">{meta.directorName || ''}</div>
-              <div className="h-14 mt-1 border-b border-dotted border-black"></div>
+              <div className="text-[10px] text-slate-700 mt-1">{meta.directorName || ''}</div>
+              <div className="h-8 mt-1 border-b border-dotted border-black"></div>
             </div>
           </div>
         </div>
