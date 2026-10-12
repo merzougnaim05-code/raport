@@ -9,6 +9,8 @@ import { DashboardView } from './components/DashboardView';
 import { DayReportView } from './components/DayReportView';
 import { DocListView } from './components/DocListView';
 import { DocDetailView } from './components/DocDetailView';
+import { CoversView } from './components/CoversView';
+import { CoverPrintSheet } from './components/CoverPrintSheet';
 import { WorkersView } from './components/WorkersView';
 import { MealsLibraryView } from './components/MealsLibraryView';
 import { ShiftsView } from './components/ShiftsView';
@@ -519,6 +521,12 @@ export default function App() {
     openPrintModal(title, content, key === 'barnamij_sanawi');
   };
 
+  const handlePrintCover = (coverKey: string) => {
+    const title = 'الغلاف الخارجي للملف — مخطط تصنيف الوثائق';
+    const content = <CoverPrintSheet data={data} coverKey={coverKey} />;
+    openPrintModal(title, content);
+  };
+
   // Export JSON Backup
   const handleExportBackup = () => {
     try {
@@ -747,6 +755,10 @@ export default function App() {
                 }}
                 lastSavedText={lastSavedText}
               />
+            )}
+
+            {currentView === 'covers' && (
+              <CoversView onPrintCover={handlePrintCover} />
             )}
 
             {currentView === 'workers' && (

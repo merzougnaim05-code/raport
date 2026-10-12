@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { NavView, InstitutionMeta } from '../types';
 import { DOC_LIST } from '../data/documentsConfig';
 import { getWeekdayName, getDaysInMonth, getCanonicalMonthName } from '../utils/dateUtils';
-import { 
-  LayoutDashboard, 
-  CalendarDays, 
-  FolderArchive, 
-  Users, 
-  Settings, 
-  X, 
-  CheckCircle2, 
+import {
+  LayoutDashboard,
+  CalendarDays,
+  FolderArchive,
+  FolderOpen,
+  Users,
+  Settings,
+  X,
+  CheckCircle2,
   ShieldCheck,
   Search,
   FileText,
@@ -81,6 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'modawama' as NavView, label: 'مداومة العطل', icon: Palmtree },
     { id: 'tasnif' as NavView, label: 'تصنيف مصلحة الاقتصاد', icon: Archive },
     { id: 'doclist' as NavView, label: 'الوثائق الإدارية (19)', icon: FolderArchive },
+    { id: 'covers' as NavView, label: 'أغلفة الملفات والسجلات', icon: FolderOpen },
     { id: 'workers' as NavView, label: 'قائمة العمال', icon: Users },
     { id: 'settings' as NavView, label: 'معلومات المؤسسة', icon: Settings },
   ];

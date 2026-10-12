@@ -137,6 +137,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <FolderArchive className="w-4 h-4" />
               <span>دليل الوثائق (19)</span>
             </button>
+            <button
+              onClick={() => onNavigate('covers')}
+              className="px-4 py-2.5 rounded-xl bg-amber-500/90 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              <FolderArchive className="w-4 h-4" />
+              <span>أغلفة الملفات والسجلات</span>
+            </button>
           </div>
         </div>
 
