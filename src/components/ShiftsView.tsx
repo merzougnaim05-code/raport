@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShiftTemplate } from '../types';
+import { SHIFT_COLOR_PALETTE } from '../data/initialData';
 import { Clock, Plus, Trash2, Save } from 'lucide-react';
 
 interface ShiftsViewProps {
@@ -22,12 +23,14 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({
   const [name, setName] = useState('');
   const [from, setFrom] = useState('08:00');
   const [to, setTo] = useState('12:00');
+  const [color, setColor] = useState(SHIFT_COLOR_PALETTE[templates.length % SHIFT_COLOR_PALETTE.length]);
 
   const handleAdd = () => {
     const n = name.trim();
     if (!n || !from || !to) return;
-    onAddShift({ name: n, from, to });
+    onAddShift({ name: n, from, to, color });
     setName('');
+    setColor(SHIFT_COLOR_PALETTE[(templates.length + 1) % SHIFT_COLOR_PALETTE.length]);
   };
 
   return (
@@ -61,7 +64,7 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({
         <h3 className="text-sm font-bold text-slate-900 dark:text-white pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
           إضافة توقيت جديد
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
           <div className="sm:col-span-2 space-y-1">
             <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block">اسم الدوام</label>
             <input
@@ -88,6 +91,16 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({
               value={to}
               onChange={(e) => setTo(e.target.value)}
               className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block">اللون</label>
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              title="لون هذا التوقيت في الجداول والطباعة"
+              className="w-full h-[42px] p-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer"
             />
           </div>
         </div>
@@ -121,6 +134,7 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({
                   <th className="py-2.5 px-3 border-l border-slate-200 dark:border-slate-700 text-right">اسم الدوام</th>
                   <th className="py-2.5 px-3 border-l border-slate-200 dark:border-slate-700 w-32">من الساعة</th>
                   <th className="py-2.5 px-3 border-l border-slate-200 dark:border-slate-700 w-32">إلى الساعة</th>
+                  <th className="py-2.5 px-3 border-l border-slate-200 dark:border-slate-700 w-20">اللون</th>
                   <th className="py-2.5 px-2 w-12"></th>
                 </tr>
               </thead>
@@ -152,6 +166,15 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({
                         value={t.to}
                         onChange={(e) => onUpdateShift(t.id, { to: e.target.value })}
                         className="w-full text-xs text-center p-1.5 rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-700 focus:border-emerald-500 bg-transparent focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:outline-none"
+                      />
+                    </td>
+                    <td className="p-1.5 border-l border-slate-200 dark:border-slate-700">
+                      <input
+                        type="color"
+                        value={t.color || '#64748b'}
+                        onChange={(e) => onUpdateShift(t.id, { color: e.target.value })}
+                        title="لون هذا التوقيت في الجداول والطباعة"
+                        className="w-10 h-8 p-0.5 mx-auto block rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer"
                       />
                     </td>
                     <td className="p-1.5 text-center">

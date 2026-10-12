@@ -47,13 +47,19 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
     };
   }, [isLandscapeDoc]);
 
-  // Format shift cells stacked vertically (mode / from / to) to save column width
+  // Format shift cells stacked vertically (times only, each timing in its own color)
+  const shiftColorFor = (cell?: ShiftCellData): string => {
+    if (!cell?.from || !cell?.to) return '';
+    const t = (data.shiftTemplates || []).find((x) => x.from === cell.from && x.to === cell.to);
+    return t?.color || '';
+  };
   const formatShiftCell = (cell?: ShiftCellData) => {
     if (!cell) return '';
     if (cell.mode === 'راحة') return 'راحة';
+    if (!cell.from && !cell.to) return cell.mode || '';
+    const c = shiftColorFor(cell);
     return (
-      <div className="leading-[1.15] whitespace-nowrap">
-        {cell.mode ? <div className="font-bold">{cell.mode}</div> : null}
+      <div className="leading-[1.15] whitespace-nowrap font-bold" style={c ? { color: c } : undefined}>
         {cell.from ? <div>من {cell.from}</div> : null}
         {cell.to ? <div>إلى {cell.to}</div> : null}
       </div>

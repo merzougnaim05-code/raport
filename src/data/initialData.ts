@@ -49,10 +49,24 @@ export const DEFAULT_MEALS: MealTemplate[] = [
 ];
 
 export const DEFAULT_SHIFT_TEMPLATES: ShiftTemplate[] = [
-  { id: 's0', name: 'صباحي', from: '08:00', to: '12:00' },
-  { id: 's1', name: 'مسائي', from: '13:00', to: '17:00' },
-  { id: 's2', name: 'ليلي', from: '20:00', to: '06:00' },
+  { id: 's0', name: 'صباحي', from: '08:00', to: '12:00', color: '#059669' },
+  { id: 's1', name: 'مسائي', from: '13:00', to: '17:00', color: '#d97706' },
+  { id: 's2', name: 'ليلي', from: '20:00', to: '06:00', color: '#4f46e5' },
 ];
+
+export const SHIFT_COLOR_PALETTE = ['#059669', '#d97706', '#4f46e5', '#0891b2', '#db2777', '#65a30d', '#9333ea'];
+
+/** Ensure every shift template has a distinct color (backfills older saved data). */
+export function normalizeShiftTemplates(arr: any[]): ShiftTemplate[] {
+  if (!Array.isArray(arr)) return DEFAULT_SHIFT_TEMPLATES.map((s) => ({ ...s }));
+  return arr.map((s: any, i: number) => ({
+    id: String(s?.id || `s_${i}`),
+    name: String(s?.name || ''),
+    from: String(s?.from || ''),
+    to: String(s?.to || ''),
+    color: s?.color || SHIFT_COLOR_PALETTE[i % SHIFT_COLOR_PALETTE.length],
+  }));
+}
 
 let modawamaSeq = 0;
 const newModawamaId = (p: string) => `${p}_${Date.now()}_${(modawamaSeq++).toString(36)}${Math.random().toString(36).substring(2, 5)}`;

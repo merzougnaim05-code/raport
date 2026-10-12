@@ -93,6 +93,7 @@ export interface ShiftTemplate {
   name: string;
   from: string;
   to: string;
+  color: string;
 }
 
 export interface SijlRow {

@@ -36,18 +36,23 @@ const ModCell: React.FC<{
   const hasData = Boolean(cell?.mode || cell?.from || cell?.to);
   const isCustom = !isRest && hasData && matchIdx === -1;
   const selectVal = isRest ? '__rest' : matchIdx >= 0 ? templates[matchIdx].id : isCustom ? '__custom' : '';
+  // Each timing has its own color; names are never written in cells (times only)
+  const matchedColor = matchIdx >= 0 ? templates[matchIdx].color || '#64748b' : '';
   const colors = isRest
     ? 'bg-slate-200 border-slate-400 text-slate-700'
-    : matchIdx >= 0
-      ? 'bg-emerald-100 border-emerald-500 text-emerald-900'
-      : isCustom
-        ? 'bg-amber-100 border-amber-500 text-amber-900'
-        : 'bg-white border-slate-300 text-slate-700';
+    : isCustom
+      ? 'bg-amber-100 border-amber-500 text-amber-900'
+      : 'bg-white border-slate-300 text-slate-700';
+  const selectStyle =
+    matchIdx >= 0 && matchedColor
+      ? { backgroundColor: matchedColor + '1A', borderColor: matchedColor }
+      : undefined;
 
   return (
     <div className="flex flex-col gap-1 min-w-0">
       <select
         value={selectVal}
+        title={matchIdx >= 0 ? templates[matchIdx].name : 'اختر الدوام'}
         onChange={(e) => {
           const v = e.target.value;
           if (v === '') onChange({});
@@ -59,19 +64,23 @@ const ModCell: React.FC<{
             if (t) onChange({ mode: t.name, from: t.from, to: t.to });
           }
         }}
+        style={selectStyle}
         className={`w-full text-[11px] p-1 rounded-lg border-2 focus:outline-none font-semibold cursor-pointer ${colors}`}
       >
         <option value="">—</option>
         <option value="__rest">راحة</option>
         {templates.map((t) => (
           <option key={t.id} value={t.id}>
-            {t.name} ({t.from} - {t.to})
+            {t.from} - {t.to}
           </option>
         ))}
         <option value="__custom">مخصص</option>
       </select>
       {matchIdx >= 0 && (
-        <div className="text-[10px] text-emerald-700 font-bold text-center leading-tight">
+        <div
+          className="text-[10px] font-bold text-center leading-tight"
+          style={{ color: matchedColor || undefined }}
+        >
           <div>من {templates[matchIdx].from}</div>
           <div>إلى {templates[matchIdx].to}</div>
         </div>
@@ -110,8 +119,31 @@ export const ModawamaView: React.FC<ModawamaViewProps> = ({
   lastSavedText,
 }) => {
   const [newTitle, setNewTitle] = useState('');
+  const [confirmState, setConfirmState] = useState<{ message: string; onOk: () => void } | null>(null);
   const programs = data.modawama || [];
   const prog = programs.find((p) => p.id === programId) || programs[0];
+
+  const workerNameOf = (wid: string) => data.workers.find((x) => x.id === wid)?.name || 'عامل';
+
+  // A scheduled cell counts as a period unless it is empty or rest (راحة لا تحتسب)
+  const isActivePeriod = (cell?: ShiftCellData) => {
+    if (!cell) return false;
+    if (cell.mode) return cell.mode !== 'راحة';
+    return Boolean(cell.from || cell.to);
+  };
+
+  const countPeriods = (p: ModawamaProgram, workerId: string) => {
+    let n = 0;
+    p.groups.forEach((g) =>
+      g.rows.forEach((r) => {
+        if (r.workerId !== workerId) return;
+        Object.values(r.schedule || {}).forEach((c) => {
+          if (isActivePeriod(c)) n++;
+        });
+      })
+    );
+    return n;
+  };
 
   const patch = (updater: (p: ModawamaProgram) => ModawamaProgram) => {
     if (prog) onUpdateProgram(prog.id, updater);
@@ -137,6 +169,73 @@ export const ModawamaView: React.FC<ModawamaViewProps> = ({
 
   const handleAddNote = () =>
     patch((p) => ({ ...p, notes: [...(p.notes || []), ''] }));
+
+  // Worker select with duplicate warning (OK continues, cancel reverts)
+  const handleWorkerChange = (gid: string, rowId: string, wid: string) => {
+    if (!prog) return;
+    const apply = () =>
+      patchGroup(gid, (gg) => ({
+        ...gg,
+        rows: gg.rows.map((x) => (x.id === rowId ? { ...x, workerId: wid } : x)),
+      }));
+    if (!wid) {
+      apply();
+      return;
+    }
+    const dup = prog.groups.some((g) => g.rows.some((r) => r.id !== rowId && r.workerId === wid));
+    if (dup) {
+      setConfirmState({
+        message: `تنبيه: العامل «${workerNameOf(wid)}» مكرر في هذا البرنامج. هل تريد الاستمرار؟`,
+        onOk: () => {
+          apply();
+          setConfirmState(null);
+        },
+      });
+      return;
+    }
+    apply();
+  };
+
+  // Shift cell with over-5-periods warning (rest does not count)
+  const handleCellChange = (gid: string, rowId: string, day: string, upd: ShiftCellData, workerId: string) => {
+    if (!prog) return;
+    const apply = () =>
+      patchGroup(gid, (gg) => ({
+        ...gg,
+        rows: gg.rows.map((x) =>
+          x.id === rowId ? { ...x, schedule: { ...(x.schedule || {}), [day]: upd } } : x
+        ),
+      }));
+    if (!workerId || !isActivePeriod(upd)) {
+      apply();
+      return;
+    }
+    const simulated: ModawamaProgram = {
+      ...prog,
+      groups: prog.groups.map((g) =>
+        g.id === gid
+          ? {
+              ...g,
+              rows: g.rows.map((r) =>
+                r.id === rowId ? { ...r, schedule: { ...(r.schedule || {}), [day]: upd } } : r
+              ),
+            }
+          : g
+      ),
+    };
+    const n = countPeriods(simulated, workerId);
+    if (n > 5) {
+      setConfirmState({
+        message: `تنبيه: العامل «${workerNameOf(workerId)}» تجاوز 5 فترات (أصبح لديه ${n} فترات — الراحة غير محسوبة). هل تريد الاستمرار؟`,
+        onOk: () => {
+          apply();
+          setConfirmState(null);
+        },
+      });
+      return;
+    }
+    apply();
+  };
 
   return (
     <div className="space-y-6 pb-24">
@@ -334,12 +433,7 @@ export const ModawamaView: React.FC<ModawamaViewProps> = ({
                     <td className="p-1.5 border-l border-slate-200 dark:border-slate-700">
                       <select
                         value={r.workerId}
-                        onChange={(e) =>
-                          patchGroup(g.id, (gg) => ({
-                            ...gg,
-                            rows: gg.rows.map((x) => (x.id === r.id ? { ...x, workerId: e.target.value } : x)),
-                          }))
-                        }
+                        onChange={(e) => handleWorkerChange(g.id, r.id, e.target.value)}
                         className="w-full text-xs font-bold p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white cursor-pointer focus:outline-none"
                       >
                         <option value="">— اختر العامل —</option>
@@ -355,16 +449,7 @@ export const ModawamaView: React.FC<ModawamaViewProps> = ({
                         <ModCell
                           cell={r.schedule?.[d.id]}
                           templates={data.shiftTemplates}
-                          onChange={(upd) =>
-                            patchGroup(g.id, (gg) => ({
-                              ...gg,
-                              rows: gg.rows.map((x) =>
-                                x.id === r.id
-                                  ? { ...x, schedule: { ...(x.schedule || {}), [d.id]: upd } }
-                                  : x
-                              ),
-                            }))
-                          }
+                          onChange={(upd) => handleCellChange(g.id, r.id, d.id, upd, r.workerId)}
                         />
                       </td>
                     ))}
@@ -478,6 +563,31 @@ export const ModawamaView: React.FC<ModawamaViewProps> = ({
 
       {lastSavedText && (
         <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center">{lastSavedText}</p>
+      )}
+
+      {/* Warning confirm modal (duplicate worker / over 5 periods) */}
+      {confirmState && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-amber-300 dark:border-amber-700 shadow-2xl p-6 max-w-sm w-full text-center space-y-4">
+            <p className="text-sm font-bold text-slate-900 dark:text-white leading-relaxed">
+              {confirmState.message}
+            </p>
+            <div className="flex gap-2 justify-center">
+              <button
+                onClick={confirmState.onOk}
+                className="px-5 py-2 text-xs font-black text-white bg-emerald-700 hover:bg-emerald-600 rounded-xl transition-colors cursor-pointer"
+              >
+                موافق
+              </button>
+              <button
+                onClick={() => setConfirmState(null)}
+                className="px-5 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

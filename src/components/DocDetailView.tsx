@@ -148,19 +148,23 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
     const hasData = Boolean(cell?.mode || cell?.from || cell?.to);
     const isCustom = !isRest && hasData && matchIdx === -1;
     const selectVal = isRest ? '__rest' : matchIdx >= 0 ? templates[matchIdx].id : isCustom ? '__custom' : '';
-    // Colored by state so controls stand out from the background
-    const selectColors = isRest
+    // Each timing has its own color; names are never written in cells (times only)
+    const matchedColor = matchIdx >= 0 ? templates[matchIdx].color || '#64748b' : '';
+    const selectClass = isRest
       ? 'bg-slate-200 border-slate-400 text-slate-700'
-      : matchIdx >= 0
-        ? 'bg-emerald-100 border-emerald-500 text-emerald-900'
-        : isCustom
-          ? 'bg-amber-100 border-amber-500 text-amber-900'
-          : 'bg-white border-slate-300 text-slate-700';
+      : isCustom
+        ? 'bg-amber-100 border-amber-500 text-amber-900'
+        : 'bg-white border-slate-300 text-slate-700';
+    const selectStyle =
+      matchIdx >= 0 && matchedColor
+        ? { backgroundColor: matchedColor + '1A', borderColor: matchedColor }
+        : undefined;
 
     return (
       <div className="flex flex-col gap-1 min-w-0">
         <select
           value={selectVal}
+          title={matchIdx >= 0 ? templates[matchIdx].name : 'اختر الدوام'}
           onChange={(e) => {
             const v = e.target.value;
             if (v === '') onCellChange({});
@@ -172,19 +176,23 @@ export const DocDetailView: React.FC<DocDetailViewProps> = ({
               if (t) onCellChange({ mode: t.name, from: t.from, to: t.to });
             }
           }}
-          className={`w-full text-[11px] p-1 rounded-lg border-2 focus:outline-none font-semibold cursor-pointer ${selectColors}`}
+          style={selectStyle}
+          className={`w-full text-[11px] p-1 rounded-lg border-2 focus:outline-none font-semibold cursor-pointer ${selectClass}`}
         >
           <option value="">— اختر الدوام —</option>
           <option value="__rest">راحة</option>
           {templates.map((t) => (
             <option key={t.id} value={t.id}>
-              {t.name} ({t.from} - {t.to})
+              {t.from} - {t.to}
             </option>
           ))}
           <option value="__custom">مخصص...</option>
         </select>
         {matchIdx >= 0 && (
-          <div className="text-[10px] text-emerald-700 font-bold text-center leading-tight">
+          <div
+            className="text-[10px] font-bold text-center leading-tight"
+            style={{ color: matchedColor || undefined }}
+          >
             <div>من {templates[matchIdx].from}</div>
             <div>إلى {templates[matchIdx].to}</div>
           </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AppData, NavView, DayReportData, InstitutionMeta, Worker, MealTemplate, ShiftTemplate, SijlRow, ModawamaProgram } from './types';
-import { getDefaultAppData, createEmptyDay, ARABIC_MONTHS, createModawamaProgram } from './data/initialData';
+import { getDefaultAppData, createEmptyDay, ARABIC_MONTHS, createModawamaProgram, normalizeShiftTemplates } from './data/initialData';
 import { getDaysInMonth } from './utils/dateUtils';
 import { DOC_LIST } from './data/documentsConfig';
 import { Header } from './components/Header';
@@ -42,7 +42,7 @@ export default function App() {
           meta: mergedMeta,
           workers: parsed.workers && parsed.workers.length > 0 ? parsed.workers : defaults.workers,
           mealLibrary: parsed.mealLibrary ?? defaults.mealLibrary,
-          shiftTemplates: parsed.shiftTemplates ?? defaults.shiftTemplates,
+          shiftTemplates: normalizeShiftTemplates(parsed.shiftTemplates ?? defaults.shiftTemplates),
           sijl: parsed.sijl || {},
           modawama: parsed.modawama ?? defaults.modawama,
           days: parsed.days || {},
@@ -558,7 +558,7 @@ export default function App() {
               meta: { ...defaults.meta, ...(imported.meta || {}) },
               workers: imported.workers || defaults.workers,
               mealLibrary: imported.mealLibrary ?? defaults.mealLibrary,
-              shiftTemplates: imported.shiftTemplates ?? defaults.shiftTemplates,
+              shiftTemplates: normalizeShiftTemplates(imported.shiftTemplates ?? defaults.shiftTemplates),
               sijl: imported.sijl || {},
               modawama: imported.modawama ?? defaults.modawama,
               days: imported.days || {},
