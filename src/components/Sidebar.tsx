@@ -16,6 +16,7 @@ import {
   Utensils,
   Clock,
   ClipboardList,
+  Palmtree,
   Home
 } from 'lucide-react';
 
@@ -76,6 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'meals' as NavView, label: 'مكتبة الوجبات', icon: Utensils },
     { id: 'shifts' as NavView, label: 'أوقات العمل', icon: Clock },
     { id: 'sijl' as NavView, label: 'سجل الغيابات', icon: ClipboardList },
+    { id: 'modawama' as NavView, label: 'مداومة العطل', icon: Palmtree },
     { id: 'doclist' as NavView, label: 'الوثائق الإدارية (19)', icon: FolderArchive },
     { id: 'workers' as NavView, label: 'قائمة العمال', icon: Users },
     { id: 'settings' as NavView, label: 'معلومات المؤسسة', icon: Settings },

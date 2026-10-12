@@ -1,4 +1,4 @@
-import { AppData, DayReportData, MealTemplate, ShiftTemplate } from '../types';
+import { AppData, DayReportData, MealTemplate, ShiftTemplate, ModawamaGroup, ModawamaProgram } from '../types';
 import { getDefaultSchoolYear } from '../utils/dateUtils';
 
 export const CATEGORIES = [
@@ -52,6 +52,63 @@ export const DEFAULT_SHIFT_TEMPLATES: ShiftTemplate[] = [
   { id: 's0', name: 'صباحي', from: '08:00', to: '12:00' },
   { id: 's1', name: 'مسائي', from: '13:00', to: '17:00' },
   { id: 's2', name: 'ليلي', from: '20:00', to: '06:00' },
+];
+
+let modawamaSeq = 0;
+const newModawamaId = (p: string) => `${p}_${Date.now()}_${(modawamaSeq++).toString(36)}${Math.random().toString(36).substring(2, 5)}`;
+
+export function createEmptyModawamaGroup(name: string): ModawamaGroup {
+  return {
+    id: newModawamaId('g'),
+    name,
+    from: '',
+    to: '',
+    rows: Array.from({ length: 4 }, () => ({
+      id: newModawamaId('r'),
+      workerId: '',
+      tasks: '',
+      schedule: {},
+    })),
+  };
+}
+
+export function createModawamaProgram(title: string): ModawamaProgram {
+  return {
+    id: newModawamaId('md'),
+    title,
+    periodFrom: '',
+    periodTo: '',
+    groups: [createEmptyModawamaGroup('الفوج الأول')],
+    notes: [],
+  };
+}
+
+function defaultModawamaGroup(gid: string, name: string): ModawamaGroup {
+  return {
+    id: gid,
+    name,
+    from: '',
+    to: '',
+    rows: [1, 2, 3, 4].map((n) => ({ id: `${gid}_r${n}`, workerId: '', tasks: '', schedule: {} })),
+  };
+}
+
+function defaultModawamaProgram(id: string, title: string): ModawamaProgram {
+  return {
+    id,
+    title,
+    periodFrom: '',
+    periodTo: '',
+    groups: [defaultModawamaGroup(`${id}_g1`, 'الفوج الأول'), defaultModawamaGroup(`${id}_g2`, 'الفوج الثاني')],
+    notes: [],
+  };
+}
+
+export const DEFAULT_MODAWAMA_PROGRAMS: ModawamaProgram[] = [
+  defaultModawamaProgram('md_kharif', 'برنامج عطلة الخريف لعمال الخدمات'),
+  defaultModawamaProgram('md_chita', 'برنامج عطلة الشتاء لعمال الخدمات'),
+  defaultModawamaProgram('md_rabi', 'برنامج عطلة الربيع لعمال الخدمات'),
+  defaultModawamaProgram('md_sayf', 'برنامج العطلة الصيفية لعمال الخدمات'),
 ];
 
 export const ECONOMIST_NOTE_OPTIONS = [
@@ -140,6 +197,7 @@ export function getDefaultAppData(): AppData {
     mealLibrary: DEFAULT_MEALS.map((m) => ({ ...m })),
     shiftTemplates: DEFAULT_SHIFT_TEMPLATES.map((s) => ({ ...s })),
     sijl: {},
+    modawama: JSON.parse(JSON.stringify(DEFAULT_MODAWAMA_PROGRAMS)),
     days: {},
     docs: {},
     docRegistry: {},

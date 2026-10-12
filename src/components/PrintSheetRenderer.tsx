@@ -7,12 +7,13 @@ import { DOC_LIST, SIMPLE_DOCS_SPEC } from '../data/documentsConfig';
 import { avgDailyShiftHours, computeSijlStats, fmt } from '../utils/sijlUtils';
 
 interface PrintSheetRendererProps {
-  type: 'day' | 'workers' | 'doc' | 'sijl';
+  type: 'day' | 'workers' | 'doc' | 'sijl' | 'modawama';
   data: AppData;
   dayNum?: number;
   docKey?: string;
   blank?: boolean;
   sijlWorkerId?: string;
+  modawamaId?: string;
 }
 
 export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
@@ -22,12 +23,13 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
   docKey = '',
   blank = false,
   sijlWorkerId = '',
+  modawamaId = '',
 }) => {
   const meta = data.meta;
 
   // Landscape orientation for wide tables (annual program). Written into <head>
   // AFTER the bundled stylesheet so it wins over the default portrait @page.
-  const isLandscapeDoc = type === 'sijl' || (type === 'doc' && docKey === 'barnamij_sanawi');
+  const isLandscapeDoc = type === 'sijl' || type === 'modawama' || (type === 'doc' && docKey === 'barnamij_sanawi');
   useEffect(() => {
     const id = 'print-orientation-override';
     let el = document.getElementById(id) as HTMLStyleElement | null;
@@ -960,10 +962,12 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
         {renderProgramNotesPrint(currentDoc.programNotes)}
 
-        <div className="flex justify-around items-start text-center mt-12 text-xs font-bold">
-          <div>المقتصد<div className="h-16 w-32 border-b border-dotted border-black mt-2" /></div>
-          <div>العامل المكلف<div className="h-16 w-32 border-b border-dotted border-black mt-2" /></div>
-          <div>مدير المؤسسة<div className="h-16 w-32 border-b border-dotted border-black mt-2" /></div>
+        <div className="flex justify-center items-start text-center mt-10 text-xs font-bold">
+          <div className="w-48">
+            <div>مدير المؤسسة</div>
+            <div className="text-[11px] text-slate-700 mt-1">{meta.directorName || ''}</div>
+            <div className="h-16 w-36 border-b border-dotted border-black mt-2 mx-auto" />
+          </div>
         </div>
       </div>
     );
@@ -1011,9 +1015,98 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           </tbody>
         </table>
         {renderProgramNotesPrint(currentDoc.programNotes)}
-        <div className="flex justify-around items-start text-center mt-8 text-xs font-bold">
-          <div>المقتصد<div className="h-16 w-32 border-b border-dotted border-black mt-2" /></div>
-          <div>مدير المؤسسة<div className="h-16 w-32 border-b border-dotted border-black mt-2" /></div>
+        <div className="flex justify-center items-start text-center mt-8 text-xs font-bold">
+          <div className="w-48">
+            <div>مدير المؤسسة</div>
+            <div className="text-[11px] text-slate-700 mt-1">{meta.directorName || ''}</div>
+            <div className="h-16 w-36 border-b border-dotted border-black mt-2 mx-auto" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // MODAWAMA — school-holiday duty programs (landscape, director signs only)
+  // =========================================================================
+  if (type === 'modawama') {
+    const prog = blank
+      ? { title: '', periodFrom: '', periodTo: '', groups: [], notes: [] }
+      : data.modawama.find((p) => p.id === modawamaId) || { title: '', periodFrom: '', periodTo: '', groups: [], notes: [] };
+    const workerName = (wid: string) => data.workers.find((x) => x.id === wid)?.name || '';
+    const workerJob = (wid: string) => data.workers.find((x) => x.id === wid)?.job || '';
+    return (
+      <div className="space-y-4 text-slate-900 leading-normal font-sans" dir="rtl" data-landscape="true">
+        <Letterhead
+          meta={meta}
+          title={prog.title || 'برنامج مداومة العطل المدرسية'}
+          subtitle={
+            blank
+              ? 'نسخة رسمية فارغة'
+              : `الفترة من ${prog.periodFrom || '—'} إلى ${prog.periodTo || '—'}`
+          }
+        />
+        {(prog.groups || []).map((g: any, gi: number) => (
+          <div key={g.id || gi}>
+            <div className="text-xs font-black mb-1">
+              {g.name || `الفوج ${gi + 1}`}
+              {g.from || g.to ? ` — من ${g.from || '—'} إلى ${g.to || '—'}` : ''}
+            </div>
+            <table className="w-full text-center text-[10px] border-collapse border border-black">
+              <thead>
+                <tr className="bg-slate-100 font-bold">
+                  <th className="border border-black px-[3px] py-[2px] w-8">الرقم</th>
+                  <th className="border border-black px-[3px] py-[2px] text-right w-28">الاسم واللقب</th>
+                  {WEEK_SCHEDULE_DAYS.map((d) => (
+                    <th key={d.id} className="border border-black px-[3px] py-[2px] w-[1%] whitespace-nowrap">{d.label}</th>
+                  ))}
+                  <th className="border border-black px-[3px] py-[2px] text-right">الأعمال الموكلة</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(g.rows || []).map((r: any, idx: number) => (
+                  <tr key={r.id || idx}>
+                    <td className="border border-black px-[3px] py-[2px] font-bold">{idx + 1}</td>
+                    <td className="border border-black px-[3px] py-[2px] text-right font-bold">
+                      {blank ? '' : workerName(r.workerId)}
+                      {blank || !workerJob(r.workerId) ? '' : ` — ${workerJob(r.workerId)}`}
+                    </td>
+                    {WEEK_SCHEDULE_DAYS.map((d) => (
+                      <td key={d.id} className="border border-black px-[3px] py-[2px] w-[1%]">
+                        {blank ? '' : formatShiftCell(r.schedule?.[d.id])}
+                      </td>
+                    ))}
+                    <td className="border border-black px-[3px] py-[2px] text-right">{blank ? '' : r.tasks || ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+        <div className="text-[11px]">
+          <div className="font-bold mb-1">ملاحظات:</div>
+          {blank ? (
+            <>
+              <div className="border-b border-dotted border-black h-6"></div>
+              <div className="border-b border-dotted border-black h-6"></div>
+              <div className="border-b border-dotted border-black h-6"></div>
+            </>
+          ) : (prog.notes || []).filter((n: string) => (n || '').trim()).length > 0 ? (
+            (prog.notes || [])
+              .filter((n: string) => (n || '').trim())
+              .map((n: string, i: number) => (
+                <div key={i} className="pr-2 mb-0.5">{i + 1}- {n}</div>
+              ))
+          ) : (
+            <div className="border-b border-dotted border-black h-6"></div>
+          )}
+        </div>
+        <div className="flex justify-center items-start text-center mt-8 text-xs font-bold">
+          <div className="w-48">
+            <div>مدير المؤسسة</div>
+            <div className="text-[11px] text-slate-700 mt-1">{meta.directorName || ''}</div>
+            <div className="h-16 w-36 border-b border-dotted border-black mt-2 mx-auto" />
+          </div>
         </div>
       </div>
     );

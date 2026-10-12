@@ -104,6 +104,30 @@ export interface SijlRow {
   comp?: number[];
 }
 
+export interface ModawamaRow {
+  id: string;
+  workerId: string;
+  tasks: string;
+  schedule: Record<string, ShiftCellData>;
+}
+
+export interface ModawamaGroup {
+  id: string;
+  name: string;
+  from: string;
+  to: string;
+  rows: ModawamaRow[];
+}
+
+export interface ModawamaProgram {
+  id: string;
+  title: string;
+  periodFrom: string;
+  periodTo: string;
+  groups: ModawamaGroup[];
+  notes: string[];
+}
+
 export type SijlField = 'sick' | 'unjust' | 'late' | 'early' | 'comp';
 
 export const SIJL_FIELDS: { id: SijlField; label: string; unit: string }[] = [
@@ -120,12 +144,13 @@ export interface AppData {
   mealLibrary: MealTemplate[];
   shiftTemplates: ShiftTemplate[];
   sijl: Record<string, SijlRow>;
+  modawama: ModawamaProgram[];
   days: Record<number, DayReportData>;
   docs: Record<string, any>;
   docRegistry: Record<string, DocRegistryEntry[]>;
 }
 
-export type NavView = 'dashboard' | 'day' | 'doclist' | 'doc' | 'workers' | 'meals' | 'shifts' | 'sijl' | 'settings';
+export type NavView = 'dashboard' | 'day' | 'doclist' | 'doc' | 'workers' | 'meals' | 'shifts' | 'sijl' | 'modawama' | 'settings';
 
 export interface DocMetaInfo {
   key: string;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AppData, NavView, DayReportData, InstitutionMeta, Worker, MealTemplate, ShiftTemplate, SijlRow } from './types';
-import { getDefaultAppData, createEmptyDay, ARABIC_MONTHS } from './data/initialData';
+import { AppData, NavView, DayReportData, InstitutionMeta, Worker, MealTemplate, ShiftTemplate, SijlRow, ModawamaProgram } from './types';
+import { getDefaultAppData, createEmptyDay, ARABIC_MONTHS, createModawamaProgram } from './data/initialData';
 import { getDaysInMonth } from './utils/dateUtils';
 import { DOC_LIST } from './data/documentsConfig';
 import { Header } from './components/Header';
@@ -13,6 +13,7 @@ import { WorkersView } from './components/WorkersView';
 import { MealsLibraryView } from './components/MealsLibraryView';
 import { ShiftsView } from './components/ShiftsView';
 import { SijlView } from './components/SijlView';
+import { ModawamaView } from './components/ModawamaView';
 import { SettingsView } from './components/SettingsView';
 import { PrintPreviewModal } from './components/PrintPreviewModal';
 import { PrintSheetRenderer } from './components/PrintSheetRenderer';
@@ -43,6 +44,7 @@ export default function App() {
           mealLibrary: parsed.mealLibrary ?? defaults.mealLibrary,
           shiftTemplates: parsed.shiftTemplates ?? defaults.shiftTemplates,
           sijl: parsed.sijl || {},
+          modawama: parsed.modawama ?? defaults.modawama,
           days: parsed.days || {},
           docs: parsed.docs || {},
           docRegistry: parsed.docRegistry || {},
@@ -58,6 +60,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState<NavView>('dashboard');
   const [currentDay, setCurrentDay] = useState<number>(1);
   const [currentDocKey, setCurrentDocKey] = useState<string>('bon_sortie');
+  const [currentModawamaId, setCurrentModawamaId] = useState<string>('');
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
 
@@ -374,6 +377,43 @@ export default function App() {
     });
   };
 
+  // Modawama (holiday duty programs) actions
+  const handleAddModawamaProgram = (title: string) => {
+    setData((prev) => {
+      const nextData = { ...prev, modawama: [...prev.modawama, createModawamaProgram(title || 'برنامج مداومة جديد')] };
+      saveToStorage(nextData);
+      return nextData;
+    });
+    showToast('تمت إضافة برنامج مداومة جديد');
+  };
+
+  const handleUpdateModawamaProgram = (id: string, updater: (prev: ModawamaProgram) => ModawamaProgram) => {
+    setData((prev) => {
+      const nextData = { ...prev, modawama: prev.modawama.map((p) => (p.id === id ? updater(p) : p)) };
+      saveToStorage(nextData);
+      return nextData;
+    });
+  };
+
+  const handleDeleteModawamaProgram = (id: string) => {
+    const prog = data.modawama.find((p) => p.id === id);
+    setConfirmModal({
+      isOpen: true,
+      title: 'حذف برنامج مداومة',
+      message: `هل أنت متأكد من حذف "${prog?.title || 'هذا البرنامج'}" بكل أفواجه؟`,
+      onConfirm: () => {
+        setData((prev) => {
+          const updated = prev.modawama.filter((p) => p.id !== id);
+          const nextData = { ...prev, modawama: updated };
+          saveToStorage(nextData);
+          return nextData;
+        });
+        setConfirmModal((m) => ({ ...m, isOpen: false }));
+        showToast('تم حذف برنامج المداومة');
+      },
+    });
+  };
+
   // Clear day with confirmation
   const handleClearDay = () => {
     setConfirmModal({
@@ -457,6 +497,13 @@ export default function App() {
     openPrintModal(title, content);
   };
 
+  const handlePrintModawama = (programId: string, blank: boolean = false) => {
+    const prog = data.modawama.find((p) => p.id === programId);
+    const title = `${prog?.title || 'برنامج المداومة'}${blank ? ' (نسخة فارغة)' : ''}`;
+    const content = <PrintSheetRenderer type="modawama" data={data} modawamaId={programId} blank={blank} />;
+    openPrintModal(title, content, true);
+  };
+
   const handlePrintDoc = (key: string, blank: boolean = false) => {
     const docInfo = DOC_LIST.find((d) => d.key === key);
     const title = `${docInfo?.title || 'وثيقة'}${blank ? ' (نسخة فارغة)' : ''}`;
@@ -513,6 +560,7 @@ export default function App() {
               mealLibrary: imported.mealLibrary ?? defaults.mealLibrary,
               shiftTemplates: imported.shiftTemplates ?? defaults.shiftTemplates,
               sijl: imported.sijl || {},
+              modawama: imported.modawama ?? defaults.modawama,
               days: imported.days || {},
               docs: imported.docs || {},
               docRegistry: imported.docRegistry || {},
@@ -630,6 +678,7 @@ export default function App() {
               else if (currentView === 'doc') handlePrintDoc(currentDocKey, false);
               else if (currentView === 'workers') handlePrintWorkers();
               else if (currentView === 'sijl') handlePrintSijlCollective();
+              else if (currentView === 'modawama') handlePrintModawama(currentModawamaId || data.modawama[0]?.id || '', false);
               else handlePrintDay(false);
             }}
             onGoDashboard={() => handleNavigate('dashboard')}
@@ -744,6 +793,23 @@ export default function App() {
                 onSave={() => {
                   saveToStorage(data);
                   showToast('تم حفظ سجل الغيابات بنجاح ✓');
+                }}
+                lastSavedText={lastSavedText}
+              />
+            )}
+
+            {currentView === 'modawama' && (
+              <ModawamaView
+                data={data}
+                programId={currentModawamaId || data.modawama[0]?.id || ''}
+                onSelectProgram={(id) => setCurrentModawamaId(id)}
+                onAddProgram={handleAddModawamaProgram}
+                onUpdateProgram={handleUpdateModawamaProgram}
+                onDeleteProgram={handleDeleteModawamaProgram}
+                onPrintProgram={(id, blank) => handlePrintModawama(id, blank)}
+                onSave={() => {
+                  saveToStorage(data);
+                  showToast('تم حفظ برامج المداومة بنجاح ✓');
                 }}
                 lastSavedText={lastSavedText}
               />
