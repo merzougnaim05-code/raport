@@ -2,16 +2,25 @@ import React from 'react';
 import { AppData } from '../types';
 import { ALL_COVERS } from '../data/coversConfig';
 import { Letterhead } from './Letterhead';
+import { CoverFrontArt } from './CoverFrontArt';
 
 interface CoverPrintSheetProps {
   data: AppData;
   coverKey: string;
+  page?: 'front' | 'list';
 }
 
-// غلاف خارجي A4 مطابق لنموذج "مخطط إحصاء وتصنيف الوثائق" الورقي
-export const CoverPrintSheet: React.FC<CoverPrintSheetProps> = ({ data, coverKey }) => {
+// الغلاف الخارجي A4:
+// - front: الواجهة الأمامية المزخرفة (نموذج أغلفة BOU / CLA) — للملفات الفردية والسجلات
+// - list: قائمة الوثائق (نموذج الغلاف الخارجي / مخطط التصنيف) — للملفات فقط
+export const CoverPrintSheet: React.FC<CoverPrintSheetProps> = ({ data, coverKey, page = 'list' }) => {
   const meta = data.meta;
   const cover = ALL_COVERS.find((c) => c.key === coverKey) || ALL_COVERS[0];
+
+  // السجلات واجهة مزخرفة فقط — ليست ملفا للفتح والغلق
+  if (cover.category === 'السجلات' || page === 'front') {
+    return <CoverFrontArt meta={meta} cover={cover} />;
+  }
 
   return (
     <div className="text-slate-900 leading-normal" dir="rtl" style={{ fontFamily: "'Amiri','Cairo',serif" }}>

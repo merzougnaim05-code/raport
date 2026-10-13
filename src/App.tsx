@@ -521,9 +521,10 @@ export default function App() {
     openPrintModal(title, content, key === 'barnamij_sanawi');
   };
 
-  const handlePrintCover = (coverKey: string) => {
-    const title = 'الغلاف الخارجي للملف — مخطط تصنيف الوثائق';
-    const content = <CoverPrintSheet data={data} coverKey={coverKey} />;
+  const handlePrintCover = (coverKey: string, page: 'front' | 'list' = 'list') => {
+    const title =
+      page === 'front' ? 'الواجهة الأمامية للملف' : 'الغلاف الخارجي للملف — مخطط تصنيف الوثائق';
+    const content = <CoverPrintSheet data={data} coverKey={coverKey} page={page} />;
     openPrintModal(title, content);
   };
 
@@ -758,7 +759,7 @@ export default function App() {
             )}
 
             {currentView === 'covers' && (
-              <CoversView onPrintCover={handlePrintCover} />
+              <CoversView meta={data.meta} onPrintCover={handlePrintCover} />
             )}
 
             {currentView === 'workers' && (

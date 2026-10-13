@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ALL_COVERS, COVER_CATEGORIES, CoverFile } from '../data/coversConfig';
+import { InstitutionMeta } from '../types';
+import { CoverFrontArt } from './CoverFrontArt';
 import {
   Archive,
   Search,
@@ -15,10 +17,11 @@ import {
 } from 'lucide-react';
 
 interface CoversViewProps {
-  onPrintCover: (key: string) => void;
+  meta: InstitutionMeta;
+  onPrintCover: (key: string, page: 'front' | 'list') => void;
 }
 
-export const CoversView: React.FC<CoversViewProps> = ({ onPrintCover }) => {
+export const CoversView: React.FC<CoversViewProps> = ({ meta, onPrintCover }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeGroup, setActiveGroup] = useState<string>('الكل');
   const [openedKey, setOpenedKey] = useState<string | null>(null);
@@ -60,9 +63,15 @@ export const CoversView: React.FC<CoversViewProps> = ({ onPrintCover }) => {
     ? ALL_COVERS.find((c) => c.key === openedKey) || null
     : null;
 
-  // ── تفصيل ملف واحد (صفحة الغلاف الداخلي) ──
+  // ── تفصيل ملف واحد ──
+  // • ملفات المقتصدية: صفحتان (الواجهة الأمامية المزخرفة + قائمة الوثائق)
+  // • السجلات: الواجهة المزخرفة فقط (ليست ملفا للفتح والغلق)
+  // • الباقي: قائمة الوثائق
   if (opened) {
     const Icon = getIcon(opened.category);
+    const isDossier = opened.category === 'ملفات المقتصدية';
+    const isRegister = opened.category === 'السجلات';
+    const numberLabel = isRegister ? 'رقم السجل' : 'رقم الملف';
     return (
       <div className="space-y-5">
         <button
@@ -83,7 +92,7 @@ export const CoversView: React.FC<CoversViewProps> = ({ onPrintCover }) => {
                 </span>
                 <div>
                   <div className="text-[11px] font-semibold text-emerald-100">
-                    {opened.category} — رقم الملف: {opened.number}
+                    {opened.category} — {numberLabel}: {opened.number}
                   </div>
                   <h2 className="text-xl sm:text-2xl font-black mt-0.5">{opened.title}</h2>
                   {opened.subtitleFr && (
@@ -94,11 +103,11 @@ export const CoversView: React.FC<CoversViewProps> = ({ onPrintCover }) => {
                 </div>
               </div>
               <button
-                onClick={() => onPrintCover(opened.key)}
+                onClick={() => onPrintCover(opened.key, isRegister || isDossier ? 'front' : 'list')}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white text-emerald-800 text-xs font-black hover:bg-emerald-50 transition-colors shrink-0 cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
-                <span>طباعة الغلاف</span>
+                <span>{isRegister || isDossier ? 'طباعة الواجهة' : 'طباعة الغلاف'}</span>
               </button>
             </div>
             {opened.description && (
@@ -106,11 +115,44 @@ export const CoversView: React.FC<CoversViewProps> = ({ onPrintCover }) => {
             )}
           </div>
 
-          {/* جدول الوثائق */}
+          {/* الواجهة الأمامية المزخرفة (الملفات الفردية والسجلات) */}
+          {(isDossier || isRegister) && (
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                  الواجهة الأمامية {isDossier ? 'للملف' : 'للسجل'} — مطابقة للنموذج الورقي
+                </h3>
+                <button
+                  onClick={() => onPrintCover(opened.key, 'front')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-600 text-emerald-800 dark:text-emerald-300 hover:text-white font-bold text-xs transition-all cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>طباعة الواجهة A4</span>
+                </button>
+              </div>
+              <div className="max-w-2xl mx-auto shadow-md">
+                <CoverFrontArt meta={meta} cover={opened} />
+              </div>
+            </div>
+          )}
+
+          {/* جدول الوثائق (الملفات فقط — السجلات ليست ملفا للفتح والغلق) */}
+          {!isRegister && (
           <div className="p-5 sm:p-6">
-            <h3 className="text-sm font-black text-slate-900 dark:text-white mb-3">
-              الوثائق التي يتكون منها الملف ({opened.docs.length})
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                الوثائق التي يتكون منها الملف ({opened.docs.length})
+              </h3>
+              {isDossier && (
+                <button
+                  onClick={() => onPrintCover(opened.key, 'list')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>طباعة القائمة A4</span>
+                </button>
+              )}
+            </div>
             <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
               <table className="w-full text-xs">
                 <thead>
@@ -167,6 +209,7 @@ export const CoversView: React.FC<CoversViewProps> = ({ onPrintCover }) => {
               ملاحظة: حذف الوثائق ممنوع بقواعد القانون رقم 88-09 المؤرخ في 26 جانفي 1988 المتعلق بالأرشيف الوطني.
             </p>
           </div>
+          )}
         </div>
       </div>
     );
@@ -185,7 +228,7 @@ export const CoversView: React.FC<CoversViewProps> = ({ onPrintCover }) => {
             أغلفة الملفات والسجلات والكرونو ({ALL_COVERS.length})
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            تصنيف المصالح الاقتصادية إلى ملفات، وداخل كل ملف صفحات الغلاف الخارجي وقائمة الوثائق — جاهزة للطباعة A4.
+            تصنيف المصالح الاقتصادية إلى ملفات — لكل ملف واجهته الأمامية المزخرفة وقائمة وثائقه، وللسجلات واجهات مزخرفة — جاهزة للطباعة A4.
           </p>
         </div>
         <div className="relative w-full md:w-72">
@@ -251,7 +294,10 @@ export const CoversView: React.FC<CoversViewProps> = ({ onPrintCover }) => {
                   </div>
                 )}
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 line-clamp-2 leading-relaxed">
-                  {c.description} — {c.docs.length} وثائق.
+                  {c.description}
+                  {c.category === 'السجلات'
+                    ? ' — واجهة مزخرفة جاهزة للطباعة.'
+                    : ` — ${c.docs.length} وثائق.`}
                 </p>
               </div>
               <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
@@ -259,12 +305,14 @@ export const CoversView: React.FC<CoversViewProps> = ({ onPrintCover }) => {
                   onClick={() => setOpenedKey(c.key)}
                   className="flex-1 py-2 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-600 text-emerald-800 dark:text-emerald-300 hover:text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <span>فتح صفحات الملف</span>
+                  <span>{c.category === 'السجلات' ? 'عرض الواجهة' : 'فتح صفحات الملف'}</span>
                   <ArrowLeft className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={() => onPrintCover(c.key)}
-                  title="طباعة الغلاف الخارجي"
+                  onClick={() =>
+                    onPrintCover(c.key, c.category === 'السجلات' ? 'front' : 'list')
+                  }
+                  title={c.category === 'السجلات' ? 'طباعة الواجهة' : 'طباعة الغلاف الخارجي'}
                   className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
