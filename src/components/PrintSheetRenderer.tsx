@@ -4,7 +4,7 @@ import { Letterhead } from './Letterhead';
 import { CATEGORIES, WEEK_SCHEDULE_DAYS } from '../data/initialData';
 import { getWeekdayName as resolveWeekday, resolveReportYear, getCanonicalMonthName, getDaysInMonth } from '../utils/dateUtils';
 import { DOC_LIST, SIMPLE_DOCS_SPEC } from '../data/documentsConfig';
-import { avgDailyShiftHours, computeSijlStats, fmt } from '../utils/sijlUtils';
+import { avgDailyShiftHours, computeAutoSijl, computeSijlStats, fmt, mergeSijlRows } from '../utils/sijlUtils';
 
 interface PrintSheetRendererProps {
   type: 'day' | 'workers' | 'doc' | 'sijl' | 'modawama';
@@ -451,6 +451,11 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
     const sijlHasAny = (rowMarks: any, day: number) =>
       SIJL_FIELDS.some((f) => sijlInMonth(rowMarks?.[f.id]).includes(day));
 
+    // دمج اليدوي + الآلي المجلوب من التقارير اليومية (لا طباعة للآلي في النسخة الفارغة)
+    const sijlAutoAll = blank ? {} : computeAutoSijl(data.days || {}, data.workers || [], sijlDaysInMonth);
+    const sijlMerged = (wid: string) =>
+      mergeSijlRows(blank ? undefined : (data.sijl[wid] as any), sijlAutoAll[wid]);
+
     const sijlHeader = (title: string, subtitle: string) => (
       <div className="border-[3px] border-double border-black p-3 mb-4">
         <div className="text-center">
@@ -499,7 +504,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
     // ---- Individual worker sheet ----
     if (sijlWorkerId) {
       const w = data.workers.find((x) => x.id === sijlWorkerId);
-      const rowMarks = blank ? {} : data.sijl[sijlWorkerId] || {};
+      const rowMarks = sijlMerged(sijlWorkerId);
       const st = blank
         ? null
         : computeSijlStats(rowMarks, avgDailyShiftHours(annualRows[sijlWorkerId]?.schedule), sijlDaysInMonth);
@@ -577,7 +582,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           </thead>
           <tbody>
             {data.workers.map((w, idx) => {
-              const rowMarks = blank ? {} : data.sijl[w.id] || {};
+              const rowMarks = sijlMerged(w.id);
               const st = blank
                 ? null
                 : computeSijlStats(rowMarks, avgDailyShiftHours(annualRows[w.id]?.schedule), sijlDaysInMonth);

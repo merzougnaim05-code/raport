@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { SIJL_FIELDS, SijlField, SijlRow, Worker } from '../types';
-import { avgDailyShiftHours, computeSijlStats, fmt } from '../utils/sijlUtils';
+import React, { useMemo, useState } from 'react';
+import { DayReportData, SIJL_FIELDS, SijlField, SijlRow, Worker } from '../types';
+import { avgDailyShiftHours, computeAutoSijl, computeSijlStats, fmt, mergeSijlRows } from '../utils/sijlUtils';
 import { ClipboardList, Printer, Save, User } from 'lucide-react';
 
 interface SijlViewProps {
   workers: Worker[];
   rows: Record<string, SijlRow>;
+  days: Record<number, DayReportData>;
   annualRows: Record<string, any>;
   daysInMonth: number;
   onUpdateRow: (workerId: string, patch: Partial<SijlRow>) => void;
@@ -18,6 +19,7 @@ interface SijlViewProps {
 export const SijlView: React.FC<SijlViewProps> = ({
   workers,
   rows,
+  days,
   annualRows,
   daysInMonth,
   onUpdateRow,
@@ -27,11 +29,23 @@ export const SijlView: React.FC<SijlViewProps> = ({
   lastSavedText,
 }) => {
   const [selectedId, setSelectedId] = useState<string>(workers[0]?.id || '');
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const dayNums = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+  // العلامات الآلية المجلوبة من التقارير اليومية (حالة العمال + جدول المواظبة)
+  const autoRows = useMemo(
+    () => computeAutoSijl(days || {}, workers, daysInMonth),
+    [days, workers, daysInMonth]
+  );
+
+  const inMonth = (arr?: number[]) =>
+    Array.isArray(arr) ? arr.filter((d) => d >= 1 && d <= daysInMonth) : [];
+  // دمج اليدوي + الآلي (بدون تكرار) — المعروض والمحسوب والمطبوع
+  const mergedOf = (wid: string): SijlRow => mergeSijlRows(rows[wid], autoRows[wid]);
+  const manualOf = (wid: string, f: SijlField): number[] => inMonth(rows[wid]?.[f]);
+  const autoOf = (wid: string, f: SijlField): number[] => inMonth(autoRows[wid]?.[f]);
 
   const hoursOf = (wid: string) => avgDailyShiftHours(annualRows[wid]?.schedule);
-  const marksOf = (wid: string, f: SijlField): number[] =>
-    Array.isArray(rows[wid]?.[f]) ? (rows[wid]?.[f] as number[]).filter((d) => d >= 1 && d <= daysInMonth) : [];
+  const marksOf = (wid: string, f: SijlField): number[] => inMonth(mergedOf(wid)?.[f]);
 
   const toggleDay = (wid: string, f: SijlField, day: number) => {
     const cur = marksOf(wid, f);
@@ -44,7 +58,7 @@ export const SijlView: React.FC<SijlViewProps> = ({
 
   const selWorker = workers.find((w) => w.id === selectedId) || workers[0];
   const selStats = selWorker
-    ? computeSijlStats(rows[selWorker.id], hoursOf(selWorker.id), daysInMonth)
+    ? computeSijlStats(mergedOf(selWorker.id), hoursOf(selWorker.id), daysInMonth)
     : null;
   const selHours = selWorker ? hoursOf(selWorker.id) : null;
 
@@ -62,8 +76,18 @@ export const SijlView: React.FC<SijlViewProps> = ({
             </h2>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            ضع علامة 1 في خانة اليوم لكل غياب أو تأخر — تُحسب المجاميع والساعات تلقائيًا من توقيت البرنامج السنوي.
+            تُجلب الغيابات آليًا من التقارير اليومية (حالة العمال + جدول المواظبة) — ويمكنك إضافة علامات يدوية بالضغط على أي خانة.
           </p>
+          <div className="flex items-center gap-3 mt-2 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-sky-500 inline-block" />
+              تلقائي من التقارير
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-emerald-600 inline-block" />
+              يدوي
+            </span>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -129,7 +153,7 @@ export const SijlView: React.FC<SijlViewProps> = ({
                 <thead>
                   <tr className="bg-slate-100/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold border-b border-slate-200 dark:border-slate-700">
                     <th className="py-2 px-2 border-l border-slate-200 dark:border-slate-700 text-right min-w-[130px]">الخانة</th>
-                    {days.map((d) => (
+                    {dayNums.map((d) => (
                       <th key={d} className="py-1.5 px-0 border-l border-slate-200 dark:border-slate-700 w-8 text-[10px]">
                         {String(d).padStart(2, '0')}
                       </th>
@@ -145,16 +169,20 @@ export const SijlView: React.FC<SijlViewProps> = ({
                         <td className="py-1.5 px-2 font-bold text-slate-800 dark:text-slate-200 border-l border-slate-200 dark:border-slate-700 text-right">
                           {f.label}
                         </td>
-                        {days.map((d) => {
+                        {dayNums.map((d) => {
                           const on = marks.includes(d);
+                          const manual = manualOf(selWorker.id, f.id).includes(d);
+                          const autoOnly = on && !manual;
                           return (
                             <td key={d} className="p-0.5 border-l border-slate-200 dark:border-slate-700">
                               <button
                                 onClick={() => toggleDay(selWorker.id, f.id, d)}
-                                title={`${f.label} — اليوم ${d}`}
+                                title={autoOnly ? `تلقائي من التقرير اليومي — ${f.label} — اليوم ${d} (اضغط لإضافة علامة يدوية)` : `${f.label} — اليوم ${d}`}
                                 className={`w-7 h-7 rounded-md text-xs font-black transition-all cursor-pointer ${
                                   on
-                                    ? 'bg-emerald-600 text-white shadow-sm scale-105'
+                                    ? autoOnly
+                                      ? 'bg-sky-500 text-white shadow-sm scale-105'
+                                      : 'bg-emerald-600 text-white shadow-sm scale-105'
                                     : 'bg-slate-100 dark:bg-slate-800 text-transparent hover:bg-emerald-100 dark:hover:bg-emerald-950 hover:text-emerald-300'
                                 }`}
                               >
@@ -212,7 +240,7 @@ export const SijlView: React.FC<SijlViewProps> = ({
               <tr className="bg-slate-100/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold border-b border-slate-200 dark:border-slate-700">
                 <th className="py-2 px-2 border-l border-slate-200 dark:border-slate-700 w-10">ر.ت</th>
                 <th className="py-2 px-3 border-l border-slate-200 dark:border-slate-700 text-right min-w-[130px]">العامل</th>
-                {days.map((d) => (
+                {dayNums.map((d) => (
                   <th key={d} className="py-1.5 px-0 border-l border-slate-200 dark:border-slate-700 w-7 text-[10px]">
                     {String(d).padStart(2, '0')}
                   </th>
@@ -224,7 +252,7 @@ export const SijlView: React.FC<SijlViewProps> = ({
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {workers.map((w, idx) => {
-                const st = computeSijlStats(rows[w.id], hoursOf(w.id), daysInMonth);
+                const st = computeSijlStats(mergedOf(w.id), hoursOf(w.id), daysInMonth);
                 return (
                   <tr key={w.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/50">
                     <td className="py-1.5 px-2 text-slate-500 dark:text-slate-400 font-semibold border-l border-slate-200 dark:border-slate-700">
@@ -233,11 +261,23 @@ export const SijlView: React.FC<SijlViewProps> = ({
                     <td className="py-1.5 px-3 font-bold text-slate-900 dark:text-white border-l border-slate-200 dark:border-slate-700 text-right">
                       {w.name}
                     </td>
-                    {days.map((d) => (
-                      <td key={d} className="p-0.5 border-l border-slate-200 dark:border-slate-700 font-black text-emerald-700 dark:text-emerald-400">
-                        {hasAny(w.id, d) ? '1' : ''}
-                      </td>
-                    ))}
+                    {dayNums.map((d) => {
+                      const on = hasAny(w.id, d);
+                      const autoOnly =
+                        on &&
+                        SIJL_FIELDS.every(
+                          (f) => !manualOf(w.id, f.id).includes(d)
+                        );
+                      return (
+                        <td
+                          key={d}
+                          title={on && autoOnly ? `تلقائي من التقرير اليومي — اليوم ${d}` : undefined}
+                          className={`p-0.5 border-l border-slate-200 dark:border-slate-700 font-black ${on ? (autoOnly ? 'text-sky-600 dark:text-sky-400' : 'text-emerald-700 dark:text-emerald-400') : ''}`}
+                        >
+                          {on ? '1' : ''}
+                        </td>
+                      );
+                    })}
                     <td className="py-1.5 px-2 font-bold border-l border-slate-200 dark:border-slate-700">{fmt(st.absDays)}</td>
                     <td className="py-1.5 px-2 font-bold border-l border-slate-200 dark:border-slate-700">{fmt(st.compDays)}</td>
                     <td className="py-1.5 px-2 font-black text-emerald-800 dark:text-emerald-400">
