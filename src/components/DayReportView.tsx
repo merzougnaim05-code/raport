@@ -124,6 +124,8 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
   };
 
   // Handlers for meals
+  // النسخ التلقائي: الوجبة المقررة تُنسخ إلى المقدمة آليًا ما لم يعدّل المستخدم
+  // المقدمة يدويًا (أي: تُزامَن فقط إذا كانت فارغة أو ما زالت مطابقة للمقررة القديمة)
   const handleMealChange = (meal: 'breakfast' | 'lunch' | 'dinner', field: 'planned' | 'served', value: string) => {
     onUpdateDay(dayNum, (prev) => {
       const defaultMeals = {
@@ -132,7 +134,12 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
         dinner: { planned: '', served: '' },
       };
       const meals = { ...defaultMeals, ...(prev.meals || {}) };
-      meals[meal] = { ...(meals[meal] || { planned: '', served: '' }), [field]: value };
+      const cur = meals[meal] || { planned: '', served: '' };
+      if (field === 'planned' && (!cur.served || cur.served === cur.planned)) {
+        meals[meal] = { ...cur, planned: value, served: value };
+      } else {
+        meals[meal] = { ...cur, [field]: value };
+      }
       return { ...prev, meals };
     });
   };
@@ -288,7 +295,9 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
       const meals = { ...defaultMeals, ...(prev.meals || {}) };
       const cur = meals[meal] || { planned: '', served: '' };
       const planned = cur.planned ? `${cur.planned}\n${tpl.description}` : tpl.description;
-      meals[meal] = { ...cur, planned };
+      // نفس قاعدة النسخ التلقائي: تُزامَن المقدمة إذا لم تُعدَّل يدويًا
+      const served = !cur.served || cur.served === cur.planned ? planned : cur.served;
+      meals[meal] = { ...cur, planned, served };
       return { ...prev, meals };
     });
   };
@@ -567,7 +576,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">الوجبة المقدمة فعليًا</label>
+              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">الوجبة المقدمة فعليًا <span className="font-normal text-slate-400">(تُنسخ آليًا من المقررة — قابلة للتعديل)</span></label>
               <textarea
                 value={currentDay.meals?.breakfast?.served || ''}
                 onChange={(e) => handleMealChange('breakfast', 'served', e.target.value)}
@@ -597,7 +606,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">الوجبة المقدمة فعليًا</label>
+              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">الوجبة المقدمة فعليًا <span className="font-normal text-slate-400">(تُنسخ آليًا من المقررة — قابلة للتعديل)</span></label>
               <textarea
                 value={currentDay.meals?.lunch?.served || ''}
                 onChange={(e) => handleMealChange('lunch', 'served', e.target.value)}
@@ -627,7 +636,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">الوجبة المقدمة فعليًا</label>
+              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">الوجبة المقدمة فعليًا <span className="font-normal text-slate-400">(تُنسخ آليًا من المقررة — قابلة للتعديل)</span></label>
               <textarea
                 value={currentDay.meals?.dinner?.served || ''}
                 onChange={(e) => handleMealChange('dinner', 'served', e.target.value)}
@@ -745,6 +754,17 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
 
         {currentDay.attendance && currentDay.attendance.length > 0 ? (
           <div className="overflow-x-auto">
+            {/* قوائم الاقتراح المنسدلة: العمال من قائمة العمال، والمدد مثل الحالة اليومية */}
+            <datalist id="attendance-worker-names">
+              {data.workers.map((w) => (
+                <option key={w.id} value={w.name || 'عامل بدون اسم'} />
+              ))}
+            </datalist>
+            <datalist id="attendance-duration-options">
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt} value={opt} />
+              ))}
+            </datalist>
             <table className="w-full text-right text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-100/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold border-b border-slate-200 dark:border-slate-700 text-center">
@@ -767,7 +787,8 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
                         type="text"
                         value={row.name}
                         onChange={(e) => handleUpdateAttendanceRow(idx, 'name', e.target.value)}
-                        placeholder="اسم ولقب المعني"
+                        placeholder="اختر عاملا من القائمة أو اكتب الاسم"
+                        list="attendance-worker-names"
                         className="w-full text-xs p-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-600 focus:outline-none"
                       />
                     </td>
@@ -776,7 +797,8 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
                         type="text"
                         value={row.duration}
                         onChange={(e) => handleUpdateAttendanceRow(idx, 'duration', e.target.value)}
-                        placeholder="يوم كامل / ساعة"
+                        placeholder="اختر الحالة أو اكتب المدة"
+                        list="attendance-duration-options"
                         className="w-full text-xs text-center p-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-600 focus:outline-none"
                       />
                     </td>
