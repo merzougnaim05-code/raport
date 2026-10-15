@@ -33,7 +33,7 @@ export const CoversView: React.FC<CoversViewProps> = ({ meta, onPrintCover }) =>
       !q ||
       c.title.includes(q) ||
       c.number.includes(q) ||
-      c.docs.some((d) => d.title.includes(q));
+      c.docs.some((d) => d.title.includes(q) || d.code.includes(q));
     return okGroup && okSearch;
   });
 
@@ -71,6 +71,8 @@ export const CoversView: React.FC<CoversViewProps> = ({ meta, onPrintCover }) =>
     const Icon = getIcon(opened.category);
     const isDossier = opened.category === 'ملفات المقتصدية';
     const isRegister = opened.category === 'السجلات';
+    const isChild = Boolean(opened.parentKey);
+    const children = ALL_COVERS.filter((c) => c.parentKey === opened.key);
     const numberLabel = isRegister ? 'رقم السجل' : 'رقم الملف';
     return (
       <div className="space-y-5">
@@ -93,6 +95,7 @@ export const CoversView: React.FC<CoversViewProps> = ({ meta, onPrintCover }) =>
                 <div>
                   <div className="text-[11px] font-semibold text-emerald-100">
                     {opened.category} — {numberLabel}: {opened.number}
+                    {opened.parentTitle ? ` — ضمن ${opened.parentTitle}` : ''}
                   </div>
                   <h2 className="text-xl sm:text-2xl font-black mt-0.5">{opened.title}</h2>
                   {opened.subtitleFr && (
@@ -136,8 +139,49 @@ export const CoversView: React.FC<CoversViewProps> = ({ meta, onPrintCover }) =>
             </div>
           )}
 
-          {/* جدول الوثائق (الملفات فقط — السجلات ليست ملفا للفتح والغلق) */}
-          {!isRegister && (
+          {/* الأغلفة الفرعية — غلاف مستقل لكل وثيقة برقمها */}
+          {children.length > 0 && (
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-sm font-black text-slate-900 dark:text-white mb-3">
+                الأغلفة الفرعية — غلاف مستقل لكل وثيقة ({children.length})
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {children.map((ch) => (
+                  <div
+                    key={ch.key}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/50 p-3.5"
+                  >
+                    <div className="min-w-0">
+                      <span className="inline-block text-[10px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-full">
+                        {ch.number}
+                      </span>
+                      <div className="text-xs font-bold text-slate-900 dark:text-white mt-1.5 truncate">
+                        {ch.title}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => setOpenedKey(ch.key)}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-600 text-emerald-800 dark:text-emerald-300 hover:text-white font-bold text-xs transition-all cursor-pointer"
+                      >
+                        عرض الواجهة
+                      </button>
+                      <button
+                        onClick={() => onPrintCover(ch.key, 'front')}
+                        title="طباعة واجهة الغلاف الفرعي"
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+                      >
+                        <Printer className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* جدول الوثائق (الملفات فقط — السجلات والأغلفة الفرعية ليست ملفا للفتح والغلق) */}
+          {!isRegister && !isChild && (
           <div className="p-5 sm:p-6">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-black text-slate-900 dark:text-white">
@@ -295,9 +339,11 @@ export const CoversView: React.FC<CoversViewProps> = ({ meta, onPrintCover }) =>
                 )}
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 line-clamp-2 leading-relaxed">
                   {c.description}
-                  {c.category === 'السجلات'
-                    ? ' — واجهة مزخرفة جاهزة للطباعة.'
-                    : ` — ${c.docs.length} وثائق.`}
+                  {c.parentKey
+                    ? ' — غلاف فرعي بواجهة مستقلة للطباعة.'
+                    : c.category === 'السجلات'
+                      ? ' — واجهة مزخرفة جاهزة للطباعة.'
+                      : ` — ${c.docs.length} وثائق.`}
                 </p>
               </div>
               <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
@@ -305,14 +351,14 @@ export const CoversView: React.FC<CoversViewProps> = ({ meta, onPrintCover }) =>
                   onClick={() => setOpenedKey(c.key)}
                   className="flex-1 py-2 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-600 text-emerald-800 dark:text-emerald-300 hover:text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <span>{c.category === 'السجلات' ? 'عرض الواجهة' : 'فتح صفحات الملف'}</span>
+                  <span>{c.category === 'السجلات' || c.parentKey ? 'عرض الواجهة' : 'فتح صفحات الملف'}</span>
                   <ArrowLeft className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() =>
-                    onPrintCover(c.key, c.category === 'السجلات' ? 'front' : 'list')
+                    onPrintCover(c.key, c.category === 'السجلات' || c.parentKey ? 'front' : 'list')
                   }
-                  title={c.category === 'السجلات' ? 'طباعة الواجهة' : 'طباعة الغلاف الخارجي'}
+                  title={c.category === 'السجلات' || c.parentKey ? 'طباعة الواجهة' : 'طباعة الغلاف الخارجي'}
                   className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />

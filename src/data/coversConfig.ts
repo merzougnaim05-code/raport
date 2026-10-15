@@ -9,6 +9,9 @@ export interface CoverFile {
   title: string;
   subtitleFr?: string;
   category: 'ملفات المقتصدية' | 'السجلات' | 'البطاقات' | 'الكرونو' | 'الخزينة والحوالات';
+  /** مفتاح الملف الأب — للأغلفة الفرعية داخل ملف (مثال: وثائق الملف 8.2) */
+  parentKey?: string;
+  parentTitle?: string;
   docs: CoverDocItem[];
   keepOffice: string;
   keepArchive: string;
@@ -203,6 +206,59 @@ export const COVER_FILES: CoverFile[] = [
     keepOffice: 'مدة بقاء الموظف بالمؤسسة',
     keepArchive: 'دائمة',
     adminValue: 'المسار المهني من الناحية المالية',
+  },
+  // ── أغلفة فرعية للملف 8.2: غلاف مستقل لكل وثيقة برقمها ──
+  {
+    key: 'staff_wadia',
+    number: '1.8.2',
+    title: 'الوضعية المالية',
+    category: 'ملفات المقتصدية',
+    parentKey: 'staff_files',
+    parentTitle: '8.2 الملفات المالية للموظفين',
+    description: 'غلاف فرعي ضمن الملف 8.2 — يوضع في مقدمة الوضعية المالية للموظف.',
+    docs: [{ code: '1.8.2', title: 'الوضعية المالية' }],
+    keepOffice: 'مدة بقاء الموظف بالمؤسسة',
+    keepArchive: 'دائمة',
+    adminValue: 'تتبع الوضعية المالية للموظف',
+  },
+  {
+    key: 'staff_tarqiya',
+    number: '2.8.2',
+    title: 'قرارات الترقية',
+    category: 'ملفات المقتصدية',
+    parentKey: 'staff_files',
+    parentTitle: '8.2 الملفات المالية للموظفين',
+    description: 'غلاف فرعي ضمن الملف 8.2 — يوضع في مقدمة قرارات ترقية الموظف.',
+    docs: [{ code: '2.8.2', title: 'قرارات الترقية' }],
+    keepOffice: 'مدة بقاء الموظف بالمؤسسة',
+    keepArchive: 'دائمة',
+    adminValue: 'توثيق المسار المهني للموظف (الترقيات)',
+  },
+  {
+    key: 'staff_familiale',
+    number: '3.8.2',
+    title: 'الحالة العائلية',
+    category: 'ملفات المقتصدية',
+    parentKey: 'staff_files',
+    parentTitle: '8.2 الملفات المالية للموظفين',
+    description: 'غلاف فرعي ضمن الملف 8.2 — يوضع في مقدمة وثائق الحالة العائلية.',
+    docs: [{ code: '3.8.2', title: 'الحالة العائلية' }],
+    keepOffice: 'مدة بقاء الموظف بالمؤسسة',
+    keepArchive: 'دائمة',
+    adminValue: 'تحديد الوضعية العائلية للموظف (المنح العائلية)',
+  },
+  {
+    key: 'staff_autres',
+    number: 'X.8.2',
+    title: 'وثائق أخرى لها علاقة بالملف',
+    category: 'ملفات المقتصدية',
+    parentKey: 'staff_files',
+    parentTitle: '8.2 الملفات المالية للموظفين',
+    description: 'غلاف فرعي ضمن الملف 8.2 — يوضع في مقدمة الوثائق التكميلية للملف المالي.',
+    docs: [{ code: 'X.8.2', title: 'وثائق أخرى لها علاقة بالملف' }],
+    keepOffice: 'مدة بقاء الموظف بالمؤسسة',
+    keepArchive: 'دائمة',
+    adminValue: 'وثائق تكميلية للملف المالي للموظف',
   },
   {
     key: 'canteen',
