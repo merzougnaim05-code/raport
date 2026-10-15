@@ -4,7 +4,7 @@ import { Letterhead } from './Letterhead';
 import { CATEGORIES, WEEK_SCHEDULE_DAYS } from '../data/initialData';
 import { getWeekdayName as resolveWeekday, resolveReportYear, getCanonicalMonthName, getDaysInMonth } from '../utils/dateUtils';
 import { DOC_LIST, SIMPLE_DOCS_SPEC } from '../data/documentsConfig';
-import { avgDailyShiftHours, computeAutoSijl, computeSijlStats, fmt, mergeSijlRows } from '../utils/sijlUtils';
+import { computeAutoSijl, computeSijlStats, fmt, mergeSijlRows } from '../utils/sijlUtils';
 
 interface PrintSheetRendererProps {
   type: 'day' | 'workers' | 'doc' | 'sijl' | 'modawama';
@@ -153,11 +153,6 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
       totals.d_reg += Number(c.d_reg) || 0;
       totals.d_pres += Number(c.d_pres) || 0;
     });
-
-    const attendanceRows =
-      day.attendance && day.attendance.length > 0
-        ? day.attendance
-        : Array.from({ length: 3 }, () => ({ name: '', duration: '', reason: '', notes: '' }));
 
     return (
       <div className="space-y-2 text-slate-900 leading-tight font-sans" dir="rtl">
@@ -323,33 +318,6 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           })()}
         </div>
 
-        {/* Attendance & Irregularities */}
-        <div>
-          <div className="text-xs font-bold mb-0.5">رابعًا: سجل المواظبة (التغيبات والتأخرات)</div>
-          <table className="w-full text-right text-[10px] border-collapse border border-black">
-            <thead>
-              <tr className="bg-slate-100 font-bold text-center">
-                <th className="border border-black p-1 w-10">ر.ت</th>
-                <th className="border border-black p-1 w-48">اللقب والاسم</th>
-                <th className="border border-black p-1 w-24 text-center">المدة</th>
-                <th className="border border-black p-1 w-48">المبرر</th>
-                <th className="border border-black p-1">الملاحظات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendanceRows.map((r: any, idx: number) => (
-                <tr key={idx}>
-                  <td className="border border-black p-1 text-center">{idx + 1}</td>
-                  <td className="border border-black p-1">{blank ? '' : r.name}</td>
-                  <td className="border border-black p-1 text-center">{blank ? '' : r.duration}</td>
-                  <td className="border border-black p-1">{blank ? '' : r.reason}</td>
-                  <td className="border border-black p-1">{blank ? '' : r.notes}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
         {/* Facilities & Works: each in its own frame */}
         <div className="text-[10px] space-y-1 pt-0.5">
           <div className="border border-black p-1.5">
@@ -442,7 +410,6 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
   if (type === 'sijl') {
     const reportYear = resolveReportYear(meta);
     const displayMonth = getCanonicalMonthName(meta.monthNum) || meta.monthName;
-    const annualRows = (data.docs?.['barnamij_sanawi']?.rows || {}) as Record<string, any>;
     const todayNum = new Date().getDate();
     const sijlDaysInMonth = getDaysInMonth(meta);
     const sijlDays = Array.from({ length: sijlDaysInMonth }, (_, i) => i + 1);
@@ -507,7 +474,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
       const rowMarks = sijlMerged(sijlWorkerId);
       const st = blank
         ? null
-        : computeSijlStats(rowMarks, avgDailyShiftHours(annualRows[sijlWorkerId]?.schedule), sijlDaysInMonth);
+        : computeSijlStats(rowMarks, sijlDaysInMonth);
       return (
         <div className="space-y-4 text-slate-900 leading-normal font-sans" dir="rtl" data-landscape="true">
           {sijlHeader('سجل الغيابات والتأخرات — ورقة فردية', blank ? 'نسخة رسمية فارغة' : `${displayMonth} ${reportYear}`)}
@@ -550,7 +517,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
             <table className="w-full text-center text-[11px] border-collapse border-2 border-black">
               <tbody>
                 <tr className="font-bold">
-                  <td className="border border-black p-1.5">عدد ساعات الغياب: {st.absHours === null ? '—' : `${fmt(st.absHours)} سا`}</td>
+                  <td className="border border-black p-1.5">عدد ساعات الغياب: {fmt(st.absHours)} سا (اليوم = 8 سا)</td>
                   <td className="border border-black p-1.5">إجمالي الغيابات: {fmt(st.absDays)} يوم</td>
                   <td className="border border-black p-1.5">إجمالي التعويضات: {fmt(st.compDays)} يوم</td>
                   <td className="border border-black p-1.5 font-black">الصافي: {netLabel(st)}</td>
@@ -585,7 +552,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
               const rowMarks = sijlMerged(w.id);
               const st = blank
                 ? null
-                : computeSijlStats(rowMarks, avgDailyShiftHours(annualRows[w.id]?.schedule), sijlDaysInMonth);
+                : computeSijlStats(rowMarks, sijlDaysInMonth);
               return (
                 <tr key={w.id}>
                   <td className="border border-black p-[1px] font-bold">{idx + 1}</td>

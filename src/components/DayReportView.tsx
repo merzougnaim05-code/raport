@@ -13,7 +13,6 @@ import {
   Building, 
   Wrench, 
   MessageSquare, 
-  ClipboardCheck, 
   Plus, 
   Trash2, 
   CheckCheck,
@@ -145,29 +144,11 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
   };
 
   // Handlers for workers
-  const PRESENT_STATUSES = ['حاضر', 'يوم كامل'];
-
   const handleWorkerStatus = (workerId: string, status: string) => {
     onUpdateDay(dayNum, (prev) => {
       const ws = { ...(prev.workerStatus || {}) };
       ws[workerId] = status;
-
-      // Sync attendance table: auto rows are rebuilt on every status change
-      const worker = data.workers.find((w) => w.id === workerId);
-      const att = (prev.attendance || []).filter(
-        (r) => !(r.auto && r.workerId === workerId)
-      );
-      if (worker && !PRESENT_STATUSES.includes(status)) {
-        att.push({
-          name: worker.name,
-          duration: 'يوم كامل',
-          reason: status,
-          notes: '',
-          auto: true,
-          workerId,
-        });
-      }
-      return { ...prev, workerStatus: ws, attendance: att };
+      return { ...prev, workerStatus: ws };
     });
   };
 
@@ -179,15 +160,6 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
       });
       const att = (prev.attendance || []).filter((r) => !r.auto);
       return { ...prev, workerStatus: ws, attendance: att };
-    });
-  };
-
-  // Handlers for attendance
-  const handleAddAttendanceRow = () => {
-    onUpdateDay(dayNum, (prev) => {
-      const att = [...(prev.attendance || [])];
-      att.push({ name: '', duration: 'يوم كامل', reason: '', notes: '' });
-      return { ...prev, attendance: att };
     });
   };
 
@@ -325,22 +297,6 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
         ))}
       </select>
     );
-  };
-
-  const handleUpdateAttendanceRow = (idx: number, field: string, value: string) => {
-    onUpdateDay(dayNum, (prev) => {
-      const att = [...(prev.attendance || [])];
-      att[idx] = { ...att[idx], [field]: value };
-      return { ...prev, attendance: att };
-    });
-  };
-
-  const handleDeleteAttendanceRow = (idx: number) => {
-    onUpdateDay(dayNum, (prev) => {
-      const att = [...(prev.attendance || [])];
-      att.splice(idx, 1);
-      return { ...prev, attendance: att };
-    });
   };
 
   return (
@@ -734,124 +690,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
         </div>
       </div>
 
-      {/* 4. المواظبة والتغيبات */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 transition-colors">
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-2">
-            <ClipboardCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
-            <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-              المواظبة: التغيبات والتأخرات التفصيلية
-            </h3>
-          </div>
-          <button
-            onClick={handleAddAttendanceRow}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 rounded-lg transition-colors cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>إضافة حالة</span>
-          </button>
-        </div>
-
-        {currentDay.attendance && currentDay.attendance.length > 0 ? (
-          <div className="overflow-x-auto">
-            {/* قوائم الاقتراح المنسدلة: العمال من قائمة العمال، والمدد مثل الحالة اليومية */}
-            <datalist id="attendance-worker-names">
-              {data.workers.map((w) => (
-                <option key={w.id} value={w.name || 'عامل بدون اسم'} />
-              ))}
-            </datalist>
-            <datalist id="attendance-duration-options">
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt} value={opt} />
-              ))}
-            </datalist>
-            <table className="w-full text-right text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-100/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold border-b border-slate-200 dark:border-slate-700 text-center">
-                  <th className="py-2 px-2 border-l border-slate-200 dark:border-slate-700 w-10">ر.ت</th>
-                  <th className="py-2 px-3 border-l border-slate-200 dark:border-slate-700 text-right min-w-[150px]">اللقب والاسم</th>
-                  <th className="py-2 px-3 border-l border-slate-200 dark:border-slate-700 w-28 text-center">المدة</th>
-                  <th className="py-2 px-3 border-l border-slate-200 dark:border-slate-700 text-right min-w-[150px]">المبرر</th>
-                  <th className="py-2 px-3 border-l border-slate-200 dark:border-slate-700 text-right">الملاحظات</th>
-                  <th className="py-2 px-2 w-10"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {currentDay.attendance.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
-                    <td className="py-2 px-2 text-center text-slate-500 dark:text-slate-400 font-semibold border-l border-slate-200 dark:border-slate-700">
-                      {idx + 1}
-                    </td>
-                    <td className="p-1 border-l border-slate-200 dark:border-slate-700">
-                      <input
-                        type="text"
-                        value={row.name}
-                        onChange={(e) => handleUpdateAttendanceRow(idx, 'name', e.target.value)}
-                        placeholder="اختر عاملا من القائمة أو اكتب الاسم"
-                        list="attendance-worker-names"
-                        className="w-full text-xs p-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-600 focus:outline-none"
-                      />
-                    </td>
-                    <td className="p-1 border-l border-slate-200 dark:border-slate-700">
-                      <input
-                        type="text"
-                        value={row.duration}
-                        onChange={(e) => handleUpdateAttendanceRow(idx, 'duration', e.target.value)}
-                        placeholder="اختر الحالة أو اكتب المدة"
-                        list="attendance-duration-options"
-                        className="w-full text-xs text-center p-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-600 focus:outline-none"
-                      />
-                    </td>
-                    <td className="p-1 border-l border-slate-200 dark:border-slate-700">
-                      <input
-                        type="text"
-                        value={row.reason}
-                        onChange={(e) => handleUpdateAttendanceRow(idx, 'reason', e.target.value)}
-                        placeholder="عطلة مرضية / شخصي..."
-                        className="w-full text-xs p-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-600 focus:outline-none"
-                      />
-                    </td>
-                    <td className="p-1 border-l border-slate-200 dark:border-slate-700">
-                      <input
-                        type="text"
-                        value={row.notes}
-                        onChange={(e) => handleUpdateAttendanceRow(idx, 'notes', e.target.value)}
-                        placeholder="ملاحظات إضافية"
-                        className="w-full text-xs p-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-600 focus:outline-none"
-                      />
-                    </td>
-                    <td className="p-1 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        {row.auto && (
-                          <span
-                            className="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded px-1 py-0.5"
-                            title="أُضيف هذا السطر تلقائيًا من حالة العامل في جدول الحضور"
-                          >
-                            تلقائي
-                          </span>
-                        )}
-                        <button
-                          onClick={() => handleDeleteAttendanceRow(idx)}
-                          className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors cursor-pointer"
-                          title="حذف هذا السطر"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-400 dark:text-slate-500">
-            لم تُسجل أي حالات غياب أو تأخر إضافية اليوم. اضغط "إضافة حالة" إذا دعت الحاجة.
-          </div>
-        )}
-      </div>
-
-      {/* 5. وضعية المحلات والمرافق والأشغال */}
+      {/* 4. وضعية المحلات والمرافق والأشغال */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Facilities */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-2 transition-colors">
@@ -912,7 +751,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
         </div>
       </div>
 
-      {/* 6. ملاحظات المقتصد والمدير وتأريخ التقرير */}
+      {/* 5. ملاحظات المقتصد والمدير وتأريخ التقرير */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-4 transition-colors">
         <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
           <MessageSquare className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />

@@ -45,13 +45,16 @@ export interface SijlStats {
   comp: number[];
   /** Total absence days (sick + unjustified). */
   absDays: number;
-  /** Total absence hours: full-day absences × daily hours + delays + early leaves (1h each). */
-  absHours: number | null;
+  /** Total absence hours: full-day absences × 8h + delays + early leaves (1h each). */
+  absHours: number;
   compDays: number;
   netKind: 'abs' | 'comp' | 'zero';
   /** Net remaining days (absence days if absences win, compensation days if compensations win). */
   netDays: number;
 }
+
+/** One absence day counts as this many hours in the register. */
+export const SIJL_HOURS_PER_DAY = 8;
 
 const daysIn = (arr: unknown, maxDay: number): number[] =>
   Array.isArray(arr)
@@ -59,17 +62,17 @@ const daysIn = (arr: unknown, maxDay: number): number[] =>
     : [];
 
 /**
- * Full statistics for one worker row given average daily hours.
- * Each delay / early-leave mark counts as one hour.
+ * Full statistics for one worker row.
+ * Rule: 1 absence day = 8 hours. Each delay / early-leave mark counts as one hour.
  */
-export function computeSijlStats(row: SijlRow | undefined, dailyHours: number | null, maxDay = 31): SijlStats {
+export function computeSijlStats(row: SijlRow | undefined, maxDay = 31): SijlStats {
   const sick = daysIn(row?.sick, maxDay);
   const unjust = daysIn(row?.unjust, maxDay);
   const late = daysIn(row?.late, maxDay);
   const early = daysIn(row?.early, maxDay);
   const comp = daysIn(row?.comp, maxDay);
   const absDays = sick.length + unjust.length;
-  const absHours = dailyHours !== null ? absDays * dailyHours + late.length + early.length : null;
+  const absHours = absDays * SIJL_HOURS_PER_DAY + late.length + early.length;
   const compDays = comp.length;
   const diff = absDays - compDays;
   return {

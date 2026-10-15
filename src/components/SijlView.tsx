@@ -1,13 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { DayReportData, SIJL_FIELDS, SijlField, SijlRow, Worker } from '../types';
-import { avgDailyShiftHours, computeAutoSijl, computeSijlStats, fmt, mergeSijlRows } from '../utils/sijlUtils';
+import { computeAutoSijl, computeSijlStats, fmt, mergeSijlRows, SIJL_HOURS_PER_DAY } from '../utils/sijlUtils';
 import { ClipboardList, Printer, Save, User } from 'lucide-react';
 
 interface SijlViewProps {
   workers: Worker[];
   rows: Record<string, SijlRow>;
   days: Record<number, DayReportData>;
-  annualRows: Record<string, any>;
   daysInMonth: number;
   onUpdateRow: (workerId: string, patch: Partial<SijlRow>) => void;
   onPrintIndividual: (workerId: string) => void;
@@ -20,7 +19,6 @@ export const SijlView: React.FC<SijlViewProps> = ({
   workers,
   rows,
   days,
-  annualRows,
   daysInMonth,
   onUpdateRow,
   onPrintIndividual,
@@ -44,7 +42,6 @@ export const SijlView: React.FC<SijlViewProps> = ({
   const manualOf = (wid: string, f: SijlField): number[] => inMonth(rows[wid]?.[f]);
   const autoOf = (wid: string, f: SijlField): number[] => inMonth(autoRows[wid]?.[f]);
 
-  const hoursOf = (wid: string) => avgDailyShiftHours(annualRows[wid]?.schedule);
   const marksOf = (wid: string, f: SijlField): number[] => inMonth(mergedOf(wid)?.[f]);
 
   const toggleDay = (wid: string, f: SijlField, day: number) => {
@@ -58,9 +55,8 @@ export const SijlView: React.FC<SijlViewProps> = ({
 
   const selWorker = workers.find((w) => w.id === selectedId) || workers[0];
   const selStats = selWorker
-    ? computeSijlStats(mergedOf(selWorker.id), hoursOf(selWorker.id), daysInMonth)
+    ? computeSijlStats(mergedOf(selWorker.id), daysInMonth)
     : null;
-  const selHours = selWorker ? hoursOf(selWorker.id) : null;
 
   return (
     <div className="space-y-6 pb-24">
@@ -145,7 +141,7 @@ export const SijlView: React.FC<SijlViewProps> = ({
               <span className="font-black text-slate-900 dark:text-white text-sm">{selWorker.name}</span>
               <span className="text-slate-500 dark:text-slate-400"> — {selWorker.job}</span>
               <span className="text-slate-500 dark:text-slate-400">
-                {' '}• معدل يوم العمل: <b>{selHours === null ? '— (لا توقيت في السنوي)' : `${fmt(selHours)} سا`}</b>
+                {' '}• معدل يوم العمل: <b>{SIJL_HOURS_PER_DAY} سا</b>
               </span>
             </div>
             <div className="overflow-x-auto">
@@ -204,7 +200,7 @@ export const SijlView: React.FC<SijlViewProps> = ({
             {selStats && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                 {[
-                  { label: 'ساعات الغياب', value: selStats.absHours === null ? '—' : `${fmt(selStats.absHours)} سا` },
+                  { label: 'ساعات الغياب', value: `${fmt(selStats.absHours)} سا` },
                   { label: 'إجمالي الغيابات', value: `${fmt(selStats.absDays)} يوم` },
                   { label: 'إجمالي التعويضات', value: `${fmt(selStats.compDays)} يوم` },
                   {
@@ -221,7 +217,7 @@ export const SijlView: React.FC<SijlViewProps> = ({
             )}
             <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
               <ClipboardList className="w-3.5 h-3.5 shrink-0" />
-              <span>كل علامة تأخر أو خروج قبل الوقت = ساعة واحدة. الصافي = الغيابات (مرضية + غير شرعي) ناقص التعويضات.</span>
+              <span>يوم الغياب = 8 ساعات. كل علامة تأخر أو خروج قبل الوقت = ساعة واحدة. الصافي = الغيابات (مرضية + غير شرعي) ناقص التعويضات.</span>
             </p>
           </div>
         )}
@@ -252,7 +248,7 @@ export const SijlView: React.FC<SijlViewProps> = ({
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {workers.map((w, idx) => {
-                const st = computeSijlStats(mergedOf(w.id), hoursOf(w.id), daysInMonth);
+                const st = computeSijlStats(mergedOf(w.id), daysInMonth);
                 return (
                   <tr key={w.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/50">
                     <td className="py-1.5 px-2 text-slate-500 dark:text-slate-400 font-semibold border-l border-slate-200 dark:border-slate-700">

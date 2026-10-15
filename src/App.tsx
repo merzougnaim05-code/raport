@@ -801,7 +801,6 @@ export default function App() {
                 workers={data.workers}
                 rows={data.sijl}
                 days={data.days}
-                annualRows={data.docs?.['barnamij_sanawi']?.rows || {}}
                 daysInMonth={getDaysInMonth(data.meta)}
                 onUpdateRow={handleUpdateSijlRow}
                 onPrintIndividual={handlePrintSijlIndividual}
