@@ -59,6 +59,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
     worksUrgent: '',
     notesEconomist: '',
     notesDirector: '',
+    mealNotes: '',
     signedAt: '',
   };
 
@@ -255,7 +256,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
       ) ||
       Object.values(currentDay.meals || {}).some(
         (m: any) => Boolean(m?.planned) || Boolean(m?.served)
-      );
+      ) || Boolean(currentDay.mealNotes);
 
     if (hasCurrentData && !window.confirm('سيتم استبدال التعداد وقائمة الوجبات المدخلة اليوم ببيانات اليوم السابق. هل ترغب في المتابعة؟')) {
       return;
@@ -265,6 +266,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
       ...prev,
       headcount: JSON.parse(JSON.stringify(prevDay.headcount || {})),
       meals: JSON.parse(JSON.stringify(prevDay.meals || {})),
+      mealNotes: prevDay.mealNotes || '',
     }));
   };
 
@@ -635,6 +637,23 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
               />
             </div>
           </div>
+        </div>
+
+        {/* ملاحظات حول الوجبة — مباشرة تحت الوجبات الغذائية */}
+        <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <label className="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5 mb-2">
+            <MessageSquare className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+            <span>ملاحظات حول الوجبة</span>
+          </label>
+          <textarea
+            value={currentDay.mealNotes || ''}
+            onChange={(e) =>
+              onUpdateDay(dayNum, (prev) => ({ ...prev, mealNotes: e.target.value }))
+            }
+            rows={2}
+            placeholder="مثال: تأخر التموين، نقص في الخبز، وجبة إضافية للضيوف..."
+            className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-750 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 focus:outline-none"
+          />
         </div>
       </div>
 

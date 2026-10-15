@@ -173,6 +173,7 @@ export default function App() {
     const hasNotes = Boolean(
       day.notesEconomist ||
       day.notesDirector ||
+      day.mealNotes ||
       day.facilitiesStatus ||
       day.worksDone ||
       day.worksUrgent

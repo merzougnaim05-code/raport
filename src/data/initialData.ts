@@ -186,6 +186,7 @@ export function createEmptyDay(): DayReportData {
     worksUrgent: '',
     notesEconomist: '',
     notesDirector: '',
+    mealNotes: '',
     signedAt: '',
   };
 }

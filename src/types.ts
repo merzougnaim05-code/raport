@@ -73,6 +73,7 @@ export interface DayReportData {
   worksUrgent: string;
   notesEconomist: string;
   notesDirector: string;
+  mealNotes: string;
   signedAt: string;
   [key: string]: any;
 }

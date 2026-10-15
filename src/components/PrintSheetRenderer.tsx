@@ -105,6 +105,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
       worksUrgent: '',
       notesEconomist: '',
       notesDirector: '',
+      mealNotes: '',
       signedAt: '',
     };
 
@@ -123,6 +124,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           worksUrgent: '',
           notesEconomist: '',
           notesDirector: '',
+          mealNotes: '',
           signedAt: '',
         }
       : realDay;
@@ -244,6 +246,13 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
               </tr>
             </tbody>
           </table>
+          {/* ملاحظات حول الوجبة — مباشرة تحت الوجبات الغذائية */}
+          <div className="mt-1 flex gap-1 text-[10px]">
+            <span className="font-bold shrink-0">ملاحظات حول الوجبة:</span>
+            <span className="flex-1 border-b border-dotted border-black min-h-[16px]">
+              {blank ? '' : (day.mealNotes || '')}
+            </span>
+          </div>
         </div>
 
         {/* Worker daily presence table: only absentees are shown to fit one page */}
