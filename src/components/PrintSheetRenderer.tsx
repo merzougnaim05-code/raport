@@ -320,29 +320,35 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
         {/* Facilities & Works: each in its own frame */}
         <div className="text-[10px] space-y-1 pt-0.5">
-          <div className="border border-black p-1.5">
-            <b>الوضعية وحالة المحلات:</b> {blank ? '' : day.facilitiesStatus || 'المحلات في حالة حسنة.'}
+          <div className="border border-black p-1.5 min-h-[70px]">
+            <div className="mb-1 font-black">1. وضعية المحلات والمرافق</div>
+            <div>{blank ? '' : day.facilitiesStatus || 'المحلات في حالة حسنة.'}</div>
           </div>
           <div className="flex gap-1">
-            <div className="flex-1 border border-black p-1.5">
-              <b>الأشغال المنجزة:</b> {blank ? '' : day.worksDone || '—'}
+            <div className="flex-1 border border-black p-1.5 min-h-[70px]">
+              <div className="mb-1 font-black">2. الأشغال المنجزة</div>
+              <div>{blank ? '' : day.worksDone || '—'}</div>
             </div>
-            <div className="flex-1 border border-black p-1.5">
-              <b>الأشغال المستعجلة:</b> {blank ? '' : day.worksUrgent || '—'}
+            <div className="flex-1 border border-black p-1.5 min-h-[70px]">
+              <div className="mb-1 font-black">3. الأشغال المستعجلة</div>
+              <div>{blank ? '' : day.worksUrgent || '—'}</div>
             </div>
           </div>
           <div className="flex gap-1 items-stretch">
-            <div className="flex-1 border border-black p-2 min-h-[80px]">
-              <b>ملاحظات المقتصد:</b>{' '}
-              {blank
-                ? ''
-                : (day.economistNotes || [])
-                    .map((n) => (n?.text || '').trim())
-                    .filter(Boolean)
-                    .join(' — ') || day.notesEconomist || 'سير عادي للخدمة.'}
+            <div className="flex-1 border border-black p-2 min-h-[130px]">
+              <div className="mb-1 font-black">ملاحظات المقتصد:</div>
+              <div>
+                {blank
+                  ? ''
+                  : (day.economistNotes || [])
+                      .map((n) => (n?.text || '').trim())
+                      .filter(Boolean)
+                      .join(' — ') || day.notesEconomist || 'سير عادي للخدمة.'}
+              </div>
             </div>
-            <div className="flex-1 border border-black p-2 min-h-[80px]">
-              <b>ملاحظات وتأشيرة المدير:</b> {blank ? '' : day.notesDirector || '—'}
+            <div className="flex-1 border border-black p-2 min-h-[130px]">
+              <div className="mb-1 font-black">ملاحظات وتأشيرة المدير:</div>
+              <div>{blank ? '' : day.notesDirector || '—'}</div>
             </div>
           </div>
         </div>

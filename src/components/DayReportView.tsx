@@ -703,14 +703,17 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
           <p className="text-[11px] text-slate-500 dark:text-slate-400">
             حالة قاعات الدراسة، المطعم، المراقد، الورشات، الإنارة، التدفئة...
           </p>
+          <label className="text-xs font-black text-emerald-800 dark:text-emerald-300">
+            1. وضعية المحلات والمرافق
+          </label>
           <textarea
             value={currentDay.facilitiesStatus || ''}
             onChange={(e) =>
               onUpdateDay(dayNum, (prev) => ({ ...prev, facilitiesStatus: e.target.value }))
             }
-            rows={3}
+            rows={6}
             placeholder="المحلات في حالة جيدة، نظافة تامة بالمطعم وقاعات الدراسة..."
-            className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-750 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 focus:outline-none"
+            className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-750 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 focus:outline-none leading-relaxed"
           />
         </div>
 
@@ -721,31 +724,31 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">الأشغال والصيانة</h3>
           </div>
           <div>
-            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
-              الأشغال المنجزة اليوم
+            <label className="text-xs font-black text-emerald-800 dark:text-emerald-300 block mb-1">
+              2. الأشغال المنجزة اليوم
             </label>
             <textarea
               value={currentDay.worksDone || ''}
               onChange={(e) =>
                 onUpdateDay(dayNum, (prev) => ({ ...prev, worksDone: e.target.value }))
               }
-              rows={2}
+              rows={3}
               placeholder="صيانة حنفيات دورات المياه، إصلاح أقفال..."
-              className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-750 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 focus:outline-none"
+              className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-750 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 focus:outline-none leading-relaxed"
             />
           </div>
           <div>
-            <label className="text-[11px] font-semibold text-rose-700 dark:text-rose-400 block mb-1">
-              الأشغال المستعجلة والطارئة
+            <label className="text-xs font-black text-rose-700 dark:text-rose-400 block mb-1">
+              3. الأشغال المستعجلة والطارئة
             </label>
             <textarea
               value={currentDay.worksUrgent || ''}
               onChange={(e) =>
                 onUpdateDay(dayNum, (prev) => ({ ...prev, worksUrgent: e.target.value }))
               }
-              rows={2}
+              rows={3}
               placeholder="تسرب مياه، عطل كهربائي مستعجل..."
-              className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-750 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 focus:outline-none"
+              className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-750 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 focus:outline-none leading-relaxed"
             />
           </div>
         </div>
@@ -794,7 +797,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
                     value={note.text || ''}
                     onChange={(e) => handleEconNoteText(idx, e.target.value)}
                     placeholder="أو اكتب ملاحظة حرة..."
-                    className="flex-1 min-w-0 text-xs p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-600 focus:outline-none"
+                    className="flex-1 min-w-0 text-xs p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-600 focus:outline-none"
                   />
                   {getEconNotes(currentDay).length > 3 && (
                     <button
@@ -820,9 +823,9 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
               onChange={(e) =>
                 onUpdateDay(dayNum, (prev) => ({ ...prev, notesDirector: e.target.value }))
               }
-              rows={4}
+              rows={7}
               placeholder="اطلعت على التقرير اليومي، موافق على الإجراءات..."
-              className="w-full text-xs p-3 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none"
+              className="w-full text-xs p-3 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none leading-relaxed"
             />
           </div>
         </div>
