@@ -425,8 +425,8 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
       : `${weekday} ${dayNum} ${displayMonth} ${reportYear}`;
     const workersList = blank ? [] : data.workers || [];
     // حجم الصفوف يتبع عدد العمال: خانات أكبر للكتابة مع قائمة قصيرة، وضغط تلقائي مع القوائم الطويلة
-    const attRoomy = workersList.length <= 18;
-    const attRowH = attRoomy ? 24 : 18;
+    const attRoomy = workersList.length <= 15;
+    const attRowH = attRoomy ? 22 : 16;
 
     const signBlock = (title: string) => (
       <div className="border border-black">
@@ -437,9 +437,9 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
             <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
           </div>
           <div className="mt-0.5"><b>الملاحظات :</b></div>
-          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 18 : 12 }}></div>
-          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 18 : 12 }}></div>
-          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 18 : 12 }}></div>
+          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 16 : 12 }}></div>
+          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 16 : 12 }}></div>
+          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 16 : 12 }}></div>
           <div className="flex items-center gap-1 mt-0.5">
             <b>الإمضـــــاء :</b>
             <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
@@ -449,7 +449,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
     );
 
     return (
-      <div className="space-y-1.5 text-slate-900 leading-tight font-sans" dir="rtl">
+      <div className="space-y-1 text-slate-900 leading-tight font-sans" dir="rtl">
         {/* ترويسة مدمجة (النموذج الورقي) */}
         <div className="text-center border-b-2 border-black pb-1 mb-1">
           <div className="text-[11px] font-bold">الجمهورية الجزائرية الديمقراطية الشعبية — وزارة التربية الوطنية</div>
