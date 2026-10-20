@@ -7,7 +7,7 @@ import { DOC_LIST, SIMPLE_DOCS_SPEC } from '../data/documentsConfig';
 import { computeAutoSijl, computeSijlStats, fmt, mergeSijlRows } from '../utils/sijlUtils';
 
 interface PrintSheetRendererProps {
-  type: 'day' | 'workers' | 'doc' | 'sijl' | 'modawama';
+  type: 'day' | 'workers' | 'doc' | 'sijl' | 'modawama' | 'attendance' | 'internalSrv';
   data: AppData;
   dayNum?: number;
   docKey?: string;
@@ -29,7 +29,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
   // Landscape orientation for wide tables (annual program). Written into <head>
   // AFTER the bundled stylesheet so it wins over the default portrait @page.
-  const isLandscapeDoc = type === 'sijl' || type === 'modawama' || (type === 'doc' && docKey === 'barnamij_sanawi');
+  const isLandscapeDoc = type === 'sijl' || type === 'modawama' || type === 'attendance' || (type === 'doc' && docKey === 'barnamij_sanawi');
   useEffect(() => {
     const id = 'print-orientation-override';
     let el = document.getElementById(id) as HTMLStyleElement | null;
@@ -413,6 +413,225 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
   // =========================================================================
   // SIJL — absences & delays register (individual + collective sheets)
   // =========================================================================
+  // =========================================================================
+  // كشف الحضور اليومي للعمال المهنيين (ورقة حضور + استلام المهام + إمضاءات)
+  // =========================================================================
+  if (type === 'attendance') {
+    const reportYear = resolveReportYear(meta);
+    const displayMonth = getCanonicalMonthName(meta.monthNum) || meta.monthName;
+    const weekday = resolveWeekday(dayNum, meta);
+    const dateLabel = blank
+      ? '................ /................ / 20......'
+      : `${weekday} ${dayNum} ${displayMonth} ${reportYear}`;
+    const workersList = blank ? [] : data.workers || [];
+    const placeholderRows = Math.max(3, 26 - workersList.length);
+
+    const signRow = (label: string) => (
+      <div className="flex items-center gap-4 border border-black px-2 py-1.5 h-10">
+        <div className="text-[11px] font-black min-w-[150px]">{label}</div>
+        <div className="flex-1 text-[10px] flex items-center gap-1">
+          <b>الإسـم و اللـقـب :</b>
+          <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
+        </div>
+        <div className="flex-1 text-[10px] flex items-center gap-1">
+          <b>الإمضـــــاء :</b>
+          <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
+        </div>
+      </div>
+    );
+
+    return (
+      <div className="space-y-2 text-slate-900 leading-tight font-sans" dir="rtl">
+        <Letterhead meta={meta} title="كشف الحضور اليومي للعمال المهنيين" subtitle={blank ? 'نسخة رسمية فارغة' : `لـيوم : ${dateLabel}`} />
+
+        <table className="w-full border-collapse text-[11px]">
+          <thead>
+            <tr>
+              <th className="border border-black p-1 min-w-[34px]">التسلسل</th>
+              <th className="border border-black p-1 min-w-[130px]">الاسم واللقب</th>
+              <th className="border border-black p-1 min-w-[120px]">الوظيفة</th>
+              <th className="border border-black p-1 min-w-[100px]">توقيت الدخـــول</th>
+              <th className="border border-black p-1 min-w-[100px]">توقيت الخروج</th>
+              <th className="border border-black p-1 min-w-[130px]">خروج ورجوع أثناء العمل</th>
+              <th className="border border-black p-1 min-w-[110px]">الإمضـــاء</th>
+            </tr>
+          </thead>
+          <tbody>
+            {workersList.map((w, idx) => (
+              <tr key={w.id}>
+                <td className="border border-black px-1 text-center font-bold">{idx + 1}</td>
+                <td className="border border-black px-1 font-semibold">{w.name}</td>
+                <td className="border border-black px-1 text-center">{w.job}</td>
+                <td className="border border-black px-1">&nbsp;</td>
+                <td className="border border-black px-1">&nbsp;</td>
+                <td className="border border-black px-1">&nbsp;</td>
+                <td className="border border-black px-1">&nbsp;</td>
+              </tr>
+            ))}
+            {Array.from({ length: placeholderRows }, (_, i) => (
+              <tr key={`p${i}`}>
+                <td className="border border-black px-1 text-center font-bold">{workersList.length + i + 1}</td>
+                <td className="border border-black px-1">&nbsp;</td>
+                <td className="border border-black px-1">&nbsp;</td>
+                <td className="border border-black px-1">&nbsp;</td>
+                <td className="border border-black px-1">&nbsp;</td>
+                <td className="border border-black px-1">&nbsp;</td>
+                <td className="border border-black px-1">&nbsp;</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="grid grid-cols-3 gap-1.5 pt-1">
+          <div>
+            <div className="text-center text-[11px] font-black border border-black border-b-0 py-1">العــامل المستلم للمهام صبــاحاً</div>
+            {signRow('')}
+          </div>
+          <div>
+            <div className="text-center text-[11px] font-black border border-black border-b-0 py-1">العـــامل المستلم للمهام مســـاءً</div>
+            {signRow('')}
+          </div>
+          <div>
+            <div className="text-center text-[11px] font-black border border-black border-b-0 py-1">العـــامل المستلم للمهام ليـــلاً</div>
+            {signRow('')}
+          </div>
+        </div>
+
+        <div className="flex gap-1.5 items-stretch">
+          <div className="flex-1 border border-black p-1.5 min-h-[75px] text-[10px]">
+            <b>ملاحظات مسؤول الخدمات :</b>
+          </div>
+          <div className="flex-1 border border-black p-1.5 min-h-[75px] text-[10px]">
+            <b>ملاحظات المقتصد :</b>
+          </div>
+        </div>
+
+        <div className="text-[10px] border border-black p-1.5 bg-slate-50 print:bg-white">
+          <b className="underline">ملاحظـــــة :</b>{' '}
+          <span>
+            يجب على الحراس قبل استلام المهام تفقد كل المحلات والمـرجل وخزان الماء وحضيرة الشاحنة، والتأكد من سلامة كل الأبواب والنوافذ.
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // التقرير اليومي لمسؤول الخدمة الداخلية
+  // =========================================================================
+  if (type === 'internalSrv') {
+    const reportYear = resolveReportYear(meta);
+    const displayMonth = getCanonicalMonthName(meta.monthNum) || meta.monthName;
+    const weekday = resolveWeekday(dayNum, meta);
+    const dateLabel = blank
+      ? '................ /................ / 20......'
+      : `${weekday} ${dayNum} ${displayMonth} ${reportYear}`;
+    const day = blank ? null : data.days?.[dayNum];
+    const statusFor = (wid: string) => (day ? (day.workerStatus || {})[wid] : undefined);
+    const isAbsent = (st?: string) => !!st && !['حاضر', 'يوم كامل', ''].includes(st);
+
+    return (
+      <div className="space-y-2 text-slate-900 leading-tight font-sans" dir="rtl">
+        <Letterhead meta={meta} title="التقرير اليومي لمسؤول الخدمة الداخلية" subtitle={blank ? 'نسخة رسمية فارغة' : `لـيوم : ${dateLabel}`} />
+
+        {/* 1- حالة المحلات */}
+        <div>
+          <div className="text-[11px] font-black mb-1">1- حـــــالة الـمـحلات</div>
+          <div className="grid grid-cols-2 gap-1">
+            <div className="border border-black p-1.5 min-h-[60px] text-[10px]"><b>الإنـــــــــارة :</b></div>
+            <div className="border border-black p-1.5 min-h-[60px] text-[10px]"><b>التدفـئـــــة :</b></div>
+            <div className="border border-black p-1.5 min-h-[60px] text-[10px]"><b>النظـــــافة :</b></div>
+            <div className="border border-black p-1.5 min-h-[60px] text-[10px]"><b>الإتـلافـــــات :</b></div>
+          </div>
+        </div>
+
+        {/* 2- الحالة الأمنية */}
+        <div>
+          <div className="text-[11px] font-black mb-1">2- الحالة الأمنية</div>
+          <div className="border border-black p-1.5 min-h-[60px] text-[10px]">&nbsp;</div>
+        </div>
+
+        {/* 3- التأخرات والغيابات */}
+        <div>
+          <div className="text-[11px] font-black mb-1">3- التأخرات والغيابات</div>
+          <table className="w-full border-collapse text-[10px]">
+            <thead>
+              <tr>
+                <th rowSpan={2} className="border border-black p-1 min-w-[26px]">التسلسل</th>
+                <th rowSpan={2} className="border border-black p-1">اللقب والجهة</th>
+                <th rowSpan={2} className="border border-black p-1 min-w-[90px]">الوظيفة</th>
+                <th colSpan={2} className="border border-black p-1">التأخرات</th>
+                <th colSpan={2} className="border border-black p-1">الغيابـــــات</th>
+              </tr>
+              <tr>
+                <th className="border border-black p-1 min-w-[70px]">مدة التأخر</th>
+                <th className="border border-black p-1 min-w-[80px]">التبرير</th>
+                <th className="border border-black p-1 min-w-[80px]">السبب</th>
+                <th className="border border-black p-1 min-w-[80px]">التبرير</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(blank ? [] : data.workers || []).map((w, idx) => {
+                const st = statusFor(w.id);
+                const isAbs = isAbsent(st);
+                const isLate = st === 'تأخر';
+                return (
+                  <tr key={w.id}>
+                    <td className="border border-black px-1 text-center font-bold">{idx + 1}</td>
+                    <td className="border border-black px-1 font-semibold">{w.name}</td>
+                    <td className="border border-black px-1 text-center">{w.job}</td>
+                    <td className="border border-black px-1 text-center">{isLate ? 'تأخر' : ''}</td>
+                    <td className="border border-black px-1">&nbsp;</td>
+                    <td className="border border-black px-1 text-center">{isAbs && !isLate ? (st || '') : ''}</td>
+                    <td className="border border-black px-1">&nbsp;</td>
+                  </tr>
+                );
+              })}
+              {blank ||
+                !(data.workers || []).length
+                ? Array.from({ length: 5 }, (_, i) => (
+                    <tr key={`b${i}`}>
+                      <td className="border border-black px-1 text-center font-bold">{i + 1}</td>
+                      <td className="border border-black px-1">&nbsp;</td>
+                      <td className="border border-black px-1">&nbsp;</td>
+                      <td className="border border-black px-1">&nbsp;</td>
+                      <td className="border border-black px-1">&nbsp;</td>
+                      <td className="border border-black px-1">&nbsp;</td>
+                      <td className="border border-black px-1">&nbsp;</td>
+                    </tr>
+                  ))
+                : null}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 4 + 5 الأعمال المنجزة والمستعجلة */}
+        <div className="grid grid-cols-2 gap-1">
+          <div className="border border-black p-1.5 min-h-[105px] text-[10px]">
+            <b>الأعمال المنجزة :</b>{' '}
+            {blank ? '' : day?.worksDone || '—'}
+          </div>
+          <div className="border border-black p-1.5 min-h-[105px] text-[10px]">
+            <b>الأعمال المستعجلة :</b>{' '}
+            {blank ? '' : day?.worksUrgent || '—'}
+          </div>
+        </div>
+
+        {/* الإمضاءات */}
+        <div className="flex gap-1.5 items-stretch">
+          <div className="flex-1 border border-black p-1.5 min-h-[115px] text-[10px]">
+            <b>مسؤول الخدمة الداخلية</b>
+            <div className="text-slate-600 print:text-black">( ملاحظات و توقـيع )</div>
+          </div>
+          <div className="flex-1 border border-black p-1.5 min-h-[115px] text-[10px]">
+            <b>المقتصـــــد</b>
+            <div className="text-slate-600 print:text-black">( ملاحظات ، ختم و توقـيع )</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (type === 'sijl') {
     const reportYear = resolveReportYear(meta);
     const displayMonth = getCanonicalMonthName(meta.monthNum) || meta.monthName;

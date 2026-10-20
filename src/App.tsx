@@ -7,6 +7,7 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { DashboardView } from './components/DashboardView';
 import { DayReportView } from './components/DayReportView';
+import { DailyOpsView } from './components/DailyOpsView';
 import { DocListView } from './components/DocListView';
 import { DocDetailView } from './components/DocDetailView';
 import { CoversView } from './components/CoversView';
@@ -685,7 +686,21 @@ export default function App() {
             onExport={handleExportBackup}
             onImportClick={() => fileInputRef.current?.click()}
             onQuickPrint={() => {
-              if (currentView === 'day') handlePrintDay(false);
+              if (currentView === 'attendance') {
+                const monthDays = Array.from({ length: getDaysInMonth(data.meta) }, (_, i) => i + 1);
+                openPrintModal(
+                  `كشف الحضور اليومي — الشهر كاملاً (${monthDays.length} ورقة)`,
+                  <div>
+                    {monthDays.map((d, idx) => (
+                      <div key={d} style={{ breakAfter: idx === monthDays.length - 1 ? 'auto' : 'page' }}>
+                        <PrintSheetRenderer type="attendance" data={data} dayNum={d} />
+                      </div>
+                    ))}
+                  </div>,
+                  true
+                );
+              }
+              else if (currentView === 'day') handlePrintDay(false);
               else if (currentView === 'doc') handlePrintDoc(currentDocKey, false);
               else if (currentView === 'workers') handlePrintWorkers();
               else if (currentView === 'sijl') handlePrintSijlCollective();
@@ -793,6 +808,14 @@ export default function App() {
                   showToast('تم حفظ أوقات العمل بنجاح ✓');
                 }}
                 lastSavedText={lastSavedText}
+              />
+            )}
+
+            {currentView === 'attendance' && (
+              <DailyOpsView
+                data={data}
+                startDay={currentDay}
+                openPrint={openPrintModal}
               />
             )}
 

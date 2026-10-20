@@ -152,7 +152,7 @@ export interface AppData {
   docRegistry: Record<string, DocRegistryEntry[]>;
 }
 
-export type NavView = 'dashboard' | 'day' | 'doclist' | 'doc' | 'covers' | 'workers' | 'meals' | 'shifts' | 'sijl' | 'modawama' | 'tasnif' | 'settings';
+export type NavView = 'dashboard' | 'day' | 'attendance' | 'doclist' | 'doc' | 'covers' | 'workers' | 'meals' | 'shifts' | 'sijl' | 'modawama' | 'tasnif' | 'settings';
 
 export interface DocMetaInfo {
   key: string;

@@ -17,6 +17,7 @@ import {
   Utensils,
   Clock,
   ClipboardList,
+  ClipboardCheck,
   Palmtree,
   Archive,
   Home
@@ -76,6 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems = [
     { id: 'dashboard' as NavView, label: 'لوحة التحكم', icon: LayoutDashboard },
     { id: 'day' as NavView, label: 'التقرير اليومي', icon: CalendarDays },
+    { id: 'attendance' as NavView, label: 'حضور العمال والتسليم', icon: ClipboardCheck },
     { id: 'meals' as NavView, label: 'مكتبة الوجبات', icon: Utensils },
     { id: 'shifts' as NavView, label: 'أوقات العمل', icon: Clock },
     { id: 'sijl' as NavView, label: 'سجل الغيابات', icon: ClipboardList },
