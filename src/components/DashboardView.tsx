@@ -2,6 +2,7 @@ import React from 'react';
 import { AppData, NavView } from '../types';
 import { DOC_LIST } from '../data/documentsConfig';
 import { resolveReportYear, getWeekdayName, getDaysInMonth, getCanonicalMonthName } from '../utils/dateUtils';
+import { PrintSheetRenderer } from './PrintSheetRenderer';
 import { 
   CalendarDays, 
   FolderArchive, 
@@ -19,6 +20,7 @@ import {
   Utensils,
   Clock,
   ClipboardList,
+  ClipboardCheck,
   Palmtree,
   Archive
 } from 'lucide-react';
@@ -30,6 +32,7 @@ interface DashboardViewProps {
   onExport: () => void;
   onImportClick: () => void;
   onPrintCurrentDay: () => void;
+  openPrint: (title: string, content: React.ReactNode, wide?: boolean) => void;
   isDayFilled: (day: number) => boolean;
 }
 
@@ -40,6 +43,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onExport,
   onImportClick,
   onPrintCurrentDay,
+  openPrint,
   isDayFilled,
 }) => {
   // Real month calendar values first (needed by metrics loop below)
@@ -129,6 +133,31 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             >
               <FileSpreadsheet className="w-4 h-4" />
               <span>تحرير تقرير اليوم ({currentDay} {displayMonth})</span>
+            </button>
+            <button
+              onClick={() => {
+                openPrint(
+                  `تقرير مسؤول الخدمة الداخلية — اليوم ${currentDay}`,
+                  <PrintSheetRenderer type="internalSrv" data={data} dayNum={currentDay} />
+                );
+              }}
+              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/25 transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              <Building2 className="w-4 h-4" />
+              <span>تقرير مسؤول الخدمة الداخلية</span>
+            </button>
+            <button
+              onClick={() => {
+                openPrint(
+                  `كشف الحضور اليومي للعمال — اليوم ${currentDay}`,
+                  <PrintSheetRenderer type="attendance" data={data} dayNum={currentDay} />,
+                  true
+                );
+              }}
+              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/25 transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              <ClipboardCheck className="w-4 h-4" />
+              <span>ورقة حضور العمال</span>
             </button>
             <button
               onClick={() => onNavigate('doclist')}

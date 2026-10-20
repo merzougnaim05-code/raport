@@ -724,6 +724,7 @@ export default function App() {
                 onExport={handleExportBackup}
                 onImportClick={() => fileInputRef.current?.click()}
                 onPrintCurrentDay={() => handlePrintDay(false)}
+                openPrint={openPrintModal}
                 isDayFilled={isDayFilled}
               />
             )}

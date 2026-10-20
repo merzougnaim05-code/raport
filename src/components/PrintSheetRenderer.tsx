@@ -424,21 +424,20 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
       ? '................ /................ / 20......'
       : `${weekday} ${dayNum} ${displayMonth} ${reportYear}`;
     const workersList = blank ? [] : data.workers || [];
-    const placeholderRows = Math.max(3, 26 - workersList.length);
+    const placeholderRows = Math.max(3, 18 - workersList.length);
 
     const signBlock = (title: string) => (
       <div className="border border-black">
-        <div className="text-center text-[11px] font-black border-b border-black py-1">{title}</div>
-        <div className="px-1.5 py-1 text-[10px]">
+        <div className="text-center text-[10px] font-black border-b border-black py-0.5">{title}</div>
+        <div className="px-1.5 py-0.5 text-[9px]">
           <div className="flex items-center gap-1">
             <b>الإسـم و اللـقـب :</b>
             <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
           </div>
-          <div className="mt-1"><b>الملاحظات :</b></div>
-          <div className="border-b border-dotted border-black h-4"></div>
-          <div className="border-b border-dotted border-black h-4"></div>
-          <div className="border-b border-dotted border-black h-4"></div>
-          <div className="flex items-center gap-1 mt-1">
+          <div className="mt-0.5"><b>الملاحظات :</b></div>
+          <div className="border-b border-dotted border-black h-3.5"></div>
+          <div className="border-b border-dotted border-black h-3.5"></div>
+          <div className="flex items-center gap-1 mt-0.5">
             <b>الإمضـــــاء :</b>
             <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
           </div>
@@ -447,66 +446,78 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
     );
 
     return (
-      <div className="space-y-2 text-slate-900 leading-tight font-sans" dir="rtl">
-        <Letterhead meta={meta} title="كشف الحضور اليومي للعمال المهنيين" subtitle={blank ? 'نسخة رسمية فارغة' : `لـيوم : ${dateLabel}`} />
+      <div className="space-y-1.5 text-slate-900 leading-tight font-sans" dir="rtl">
+        {/* ترويسة مدمجة (النموذج الورقي) */}
+        <div className="text-center border-b-2 border-black pb-1 mb-1">
+          <div className="text-[11px] font-bold">الجمهورية الجزائرية الديمقراطية الشعبية — وزارة التربية الوطنية</div>
+          <div className="flex justify-between items-center text-[10px] font-semibold mt-0.5 px-1">
+            <div className="text-right">
+              <div>مديـرية التربية لولاية: {meta.wilaya || '—'}</div>
+              <div className="font-black text-[11px]">{meta.institution || '—'}</div>
+            </div>
+            <div className="text-center text-[12px] font-black underline">كشف الحضور اليومي للعمال المهنيين</div>
+            <div className="text-left">
+              <div>السنة الدراسية: {meta.year || '—'}</div>
+              <div>لـيوم : <b>{blank ? '...... /...... /......' : dateLabel}</b></div>
+            </div>
+          </div>
+        </div>
 
-        <table className="w-full border-collapse text-[11px]">
+        <table className="w-full border-collapse text-[10px]">
           <thead>
             <tr>
-              <th className="border border-black p-1 min-w-[34px]">التسلسل</th>
-              <th className="border border-black p-1 min-w-[130px]">الاسم واللقب</th>
-              <th className="border border-black p-1 min-w-[120px]">الوظيفة</th>
-              <th className="border border-black p-1 min-w-[100px]">توقيت الدخـــول</th>
-              <th className="border border-black p-1 min-w-[100px]">توقيت الخروج</th>
-              <th className="border border-black p-1 min-w-[130px]">خروج ورجوع أثناء العمل</th>
-              <th className="border border-black p-1 min-w-[110px]">الإمضـــاء</th>
+              <th className="border border-black p-0.5 min-w-[30px]">التسلسل</th>
+              <th className="border border-black p-0.5 min-w-[130px]">الاسم واللقب</th>
+              <th className="border border-black p-0.5 min-w-[120px]">الوظيفة</th>
+              <th className="border border-black p-0.5 min-w-[100px]">توقيت الدخـــول</th>
+              <th className="border border-black p-0.5 min-w-[100px]">توقيت الخروج</th>
+              <th className="border border-black p-0.5 min-w-[130px]">خروج ورجوع أثناء العمل</th>
+              <th className="border border-black p-0.5 min-w-[110px]">الإمضـــاء</th>
             </tr>
           </thead>
           <tbody>
             {workersList.map((w, idx) => (
               <tr key={w.id}>
-                <td className="border border-black px-1 text-center font-bold">{idx + 1}</td>
-                <td className="border border-black px-1 font-semibold">{w.name}</td>
-                <td className="border border-black px-1 text-center">{w.job}</td>
-                <td className="border border-black px-1">&nbsp;</td>
-                <td className="border border-black px-1">&nbsp;</td>
-                <td className="border border-black px-1">&nbsp;</td>
-                <td className="border border-black px-1">&nbsp;</td>
+                <td className="border border-black px-1 py-[1px] text-center font-bold">{idx + 1}</td>
+                <td className="border border-black px-1 py-[1px] font-semibold">{w.name}</td>
+                <td className="border border-black px-1 py-[1px] text-center">{w.job}</td>
+                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
               </tr>
             ))}
             {Array.from({ length: placeholderRows }, (_, i) => (
               <tr key={`p${i}`}>
-                <td className="border border-black px-1 text-center font-bold">{workersList.length + i + 1}</td>
-                <td className="border border-black px-1">&nbsp;</td>
-                <td className="border border-black px-1">&nbsp;</td>
-                <td className="border border-black px-1">&nbsp;</td>
-                <td className="border border-black px-1">&nbsp;</td>
-                <td className="border border-black px-1">&nbsp;</td>
-                <td className="border border-black px-1">&nbsp;</td>
+                <td className="border border-black px-1 py-[1px] text-center font-bold">{workersList.length + i + 1}</td>
+                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
               </tr>
             ))}
           </tbody>
         </table>
 
         {/* استلام المهام: صباحاً / مساءً / ليلاً */}
-        <div className="pt-1">
-          <div className="grid grid-cols-3 gap-1.5">
-            {signBlock('العـــامل المستلم للمهام صبــــاحاً')}
-            {signBlock('العـــامل المستلم للمهام مســـــاء')}
-            {signBlock('العـــامل المستلم للمهام ليــــــلا')}
-          </div>
+        <div className="grid grid-cols-3 gap-1.5">
+          {signBlock('العـــامل المستلم للمهام صبــــاحاً')}
+          {signBlock('العـــامل المستلم للمهام مســـــاء')}
+          {signBlock('العـــامل المستلم للمهام ليــــــلا')}
         </div>
 
         <div className="flex gap-1.5 items-stretch">
-          <div className="flex-1 border border-black p-1.5 min-h-[75px] text-[10px]">
+          <div className="flex-1 border border-black p-1.5 min-h-[52px] text-[9px]">
             <b>ملاحظات مسؤول الخدمات :</b>
           </div>
-          <div className="flex-1 border border-black p-1.5 min-h-[75px] text-[10px]">
+          <div className="flex-1 border border-black p-1.5 min-h-[52px] text-[9px]">
             <b>ملاحظات المقتصد :</b>
           </div>
         </div>
 
-        <div className="text-[10px] border border-black p-1.5 bg-slate-50 print:bg-white">
+        <div className="text-[9px] border border-black p-1 bg-slate-50 print:bg-white">
           <b className="underline">ملاحظـــــة :</b>{' '}
           <span>
             يجب على الحراس قبل استلام المهام تفقد كل المحلات والمـرجل وخزان الماء وحضيرة الشاحنة، والتأكد من سلامة كل الأبواب والنوافذ.
@@ -531,43 +542,43 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
     const isAbsent = (st?: string) => !!st && !['حاضر', 'يوم كامل', ''].includes(st);
 
     return (
-      <div className="space-y-2 text-slate-900 leading-tight font-sans" dir="rtl">
+      <div className="space-y-1.5 text-slate-900 leading-tight font-sans" dir="rtl">
         <Letterhead meta={meta} title="التقرير اليومي لمسؤول الخدمة الداخلية" subtitle={blank ? 'نسخة رسمية فارغة' : `لـيوم : ${dateLabel}`} />
 
         {/* 1- حالة المحلات */}
         <div>
-          <div className="text-[11px] font-black mb-1">1- حـــــالة الـمـحلات</div>
+          <div className="text-[10px] font-black mb-0.5">1- حـــــالة الـمـحلات</div>
           <div className="grid grid-cols-2 gap-1">
-            <div className="border border-black p-1.5 min-h-[60px] text-[10px]"><b>الإنـــــــــارة :</b></div>
-            <div className="border border-black p-1.5 min-h-[60px] text-[10px]"><b>التدفـئـــــة :</b></div>
-            <div className="border border-black p-1.5 min-h-[60px] text-[10px]"><b>النظـــــافة :</b></div>
-            <div className="border border-black p-1.5 min-h-[60px] text-[10px]"><b>الإتـلافـــــات :</b></div>
+            <div className="border border-black p-1 min-h-[46px] text-[9px]"><b>الإنـــــــــارة :</b></div>
+            <div className="border border-black p-1 min-h-[46px] text-[9px]"><b>التدفـئـــــة :</b></div>
+            <div className="border border-black p-1 min-h-[46px] text-[9px]"><b>النظـــــافة :</b></div>
+            <div className="border border-black p-1 min-h-[46px] text-[9px]"><b>الإتـلافـــــات :</b></div>
           </div>
         </div>
 
         {/* 2- الحالة الأمنية */}
         <div>
-          <div className="text-[11px] font-black mb-1">2- الحالة الأمنية</div>
-          <div className="border border-black p-1.5 min-h-[60px] text-[10px]">&nbsp;</div>
+          <div className="text-[10px] font-black mb-0.5">2- الحالة الأمنية</div>
+          <div className="border border-black p-1 min-h-[46px] text-[9px]">&nbsp;</div>
         </div>
 
         {/* 3- التأخرات والغيابات */}
         <div>
-          <div className="text-[11px] font-black mb-1">3- التأخرات والغيابات</div>
-          <table className="w-full border-collapse text-[10px]">
+          <div className="text-[10px] font-black mb-0.5">3- التأخرات والغيابات</div>
+          <table className="w-full border-collapse text-[9px]">
             <thead>
               <tr>
-                <th rowSpan={2} className="border border-black p-1 min-w-[26px]">التسلسل</th>
-                <th rowSpan={2} className="border border-black p-1">اللقب والجهة</th>
-                <th rowSpan={2} className="border border-black p-1 min-w-[90px]">الوظيفة</th>
-                <th colSpan={2} className="border border-black p-1">التأخرات</th>
-                <th colSpan={2} className="border border-black p-1">الغيابـــــات</th>
+                <th rowSpan={2} className="border border-black p-0.5 min-w-[24px]">التسلسل</th>
+                <th rowSpan={2} className="border border-black p-0.5">اللقب والجهة</th>
+                <th rowSpan={2} className="border border-black p-0.5 min-w-[85px]">الوظيفة</th>
+                <th colSpan={2} className="border border-black p-0.5">التأخرات</th>
+                <th colSpan={2} className="border border-black p-0.5">الغيابـــــات</th>
               </tr>
               <tr>
-                <th className="border border-black p-1 min-w-[70px]">مدة التأخر</th>
-                <th className="border border-black p-1 min-w-[80px]">التبرير</th>
-                <th className="border border-black p-1 min-w-[80px]">السبب</th>
-                <th className="border border-black p-1 min-w-[80px]">التبرير</th>
+                <th className="border border-black p-0.5 min-w-[60px]">مدة التأخر</th>
+                <th className="border border-black p-0.5 min-w-[70px]">التبرير</th>
+                <th className="border border-black p-0.5 min-w-[70px]">السبب</th>
+                <th className="border border-black p-0.5 min-w-[70px]">التبرير</th>
               </tr>
             </thead>
             <tbody>
@@ -577,26 +588,26 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
                 const isLate = st === 'تأخر';
                 return (
                   <tr key={w.id}>
-                    <td className="border border-black px-1 text-center font-bold">{idx + 1}</td>
-                    <td className="border border-black px-1 font-semibold">{w.name}</td>
-                    <td className="border border-black px-1 text-center">{w.job}</td>
-                    <td className="border border-black px-1 text-center">{blank ? '' : isLate ? 'تأخر' : ''}</td>
-                    <td className="border border-black px-1">&nbsp;</td>
-                    <td className="border border-black px-1 text-center">{blank ? '' : isAbs && !isLate ? (st || '') : ''}</td>
-                    <td className="border border-black px-1">&nbsp;</td>
+                    <td className="border border-black px-1 py-[1px] text-center font-bold">{idx + 1}</td>
+                    <td className="border border-black px-1 py-[1px] font-semibold">{w.name}</td>
+                    <td className="border border-black px-1 py-[1px] text-center">{w.job}</td>
+                    <td className="border border-black px-1 py-[1px] text-center">{blank ? '' : isLate ? 'تأخر' : ''}</td>
+                    <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                    <td className="border border-black px-1 py-[1px] text-center">{blank ? '' : isAbs && !isLate ? (st || '') : ''}</td>
+                    <td className="border border-black px-1 py-[1px]">&nbsp;</td>
                   </tr>
                 );
               })}
               {Math.max(0, 19 - (data.workers || []).length) > 0
                 ? Array.from({ length: Math.max(0, 19 - (data.workers || []).length) }, (_, i) => (
                     <tr key={`b${i}`}>
-                      <td className="border border-black px-1 text-center font-bold">{(data.workers || []).length + i + 1}</td>
-                      <td className="border border-black px-1">&nbsp;</td>
-                      <td className="border border-black px-1">&nbsp;</td>
-                      <td className="border border-black px-1">&nbsp;</td>
-                      <td className="border border-black px-1">&nbsp;</td>
-                      <td className="border border-black px-1">&nbsp;</td>
-                      <td className="border border-black px-1">&nbsp;</td>
+                      <td className="border border-black px-1 py-[1px] text-center font-bold">{(data.workers || []).length + i + 1}</td>
+                      <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                      <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                      <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                      <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                      <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                      <td className="border border-black px-1 py-[1px]">&nbsp;</td>
                     </tr>
                   ))
                 : null}
@@ -606,11 +617,11 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
         {/* 4 + 5 الأعمال المنجزة والمستعجلة */}
         <div className="grid grid-cols-2 gap-1">
-          <div className="border border-black p-1.5 min-h-[105px] text-[10px]">
+          <div className="border border-black p-1 min-h-[82px] text-[9px]">
             <b>الأعمال المنجزة :</b>{' '}
             {blank ? '' : day?.worksDone || '—'}
           </div>
-          <div className="border border-black p-1.5 min-h-[105px] text-[10px]">
+          <div className="border border-black p-1 min-h-[82px] text-[9px]">
             <b>الأعمال المستعجلة :</b>{' '}
             {blank ? '' : day?.worksUrgent || '—'}
           </div>
@@ -618,11 +629,11 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
         {/* الإمضاءات */}
         <div className="flex gap-1.5 items-stretch">
-          <div className="flex-1 border border-black p-1.5 min-h-[115px] text-[10px]">
+          <div className="flex-1 border border-black p-1 min-h-[88px] text-[9px]">
             <b>مسؤول الخدمة الداخلية</b>
             <div className="text-slate-600 print:text-black">( ملاحظات و توقـيع )</div>
           </div>
-          <div className="flex-1 border border-black p-1.5 min-h-[115px] text-[10px]">
+          <div className="flex-1 border border-black p-1 min-h-[88px] text-[9px]">
             <b>المقتصـــــد</b>
             <div className="text-slate-600 print:text-black">( ملاحظات ، ختم و توقـيع )</div>
           </div>
