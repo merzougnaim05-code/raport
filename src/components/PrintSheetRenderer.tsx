@@ -424,9 +424,11 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
       ? '................ /................ / 20......'
       : `${weekday} ${dayNum} ${displayMonth} ${reportYear}`;
     const workersList = blank ? [] : data.workers || [];
+    // نسخة الفراغ تأخذ 18 صفاً فارغاً جاهزاً؛ نسخة اليوم تساوي عدد العمال حرفياً (تنمو آلياً)
+    const blankRows = 18;
     // حجم الصفوف يتبع عدد العمال: خانات أكبر للكتابة مع قائمة قصيرة، وضغط تلقائي مع القوائم الطويلة
-    const attRoomy = workersList.length <= 15;
-    const attRowH = attRoomy ? 22 : 16;
+    const attRoomy = blank ? true : workersList.length <= 15;
+    const attRowH = blank ? 18 : attRoomy ? 22 : 16;
 
     const signBlock = (title: string) => (
       <div className="border border-black">
@@ -479,7 +481,19 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
             </tr>
           </thead>
           <tbody>
-            {workersList.map((w, idx) => (
+            {blank
+              ? Array.from({ length: blankRows }, (_, i) => (
+                  <tr key={`b${i}`} style={{ height: attRowH }}>
+                    <td className="border border-black px-1 text-center font-bold">{i + 1}</td>
+                    <td className="border border-black px-1">&nbsp;</td>
+                    <td className="border border-black px-1">&nbsp;</td>
+                    <td className="border border-black px-1">&nbsp;</td>
+                    <td className="border border-black px-1">&nbsp;</td>
+                    <td className="border border-black px-1">&nbsp;</td>
+                    <td className="border border-black px-1">&nbsp;</td>
+                  </tr>
+                ))
+              : workersList.map((w, idx) => (
               <tr key={w.id} style={{ height: attRowH }}>
                 <td className="border border-black px-1 text-center font-bold">{idx + 1}</td>
                 <td className="border border-black px-1 font-semibold">{w.name}</td>
