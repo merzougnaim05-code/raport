@@ -45,6 +45,8 @@ type CardDef = {
 
 export const DailyOpsView: React.FC<DailyOpsViewProps> = ({ data, startDay, openPrint }) => {
   const [day, setDay] = useState<number>(Math.max(1, Math.min(startDay, getDaysInMonth(data.meta))));
+  const [rangeFrom, setRangeFrom] = useState<number>(1);
+  const [rangeTo, setRangeTo] = useState<number>(Math.max(1, Math.min(startDay, getDaysInMonth(data.meta))));
   const daysInMonth = getDaysInMonth(data.meta);
   const dayNums = useMemo(() => Array.from({ length: daysInMonth }, (_, i) => i + 1), [daysInMonth]);
   const monthName = getCanonicalMonthName(data.meta.monthNum) || data.meta.monthName || '';
@@ -53,7 +55,7 @@ export const DailyOpsView: React.FC<DailyOpsViewProps> = ({ data, startDay, open
     {
       key: 'attendance',
       title: 'كشف الحضور اليومي للعمال المهنيين',
-      desc: 'قائمة العمال بتوقيت الدخول والخروج والإمضاء + استلام المهام (صباحاً / مساءً / ليلاً) وملاحظات مسؤول الخدمات والمقتصد.',
+      desc: 'قائمة العمال بتوقيت الدخول والخروج والإمضاء + استلام المهام (صباحاً / مساءً / ليلاً) وملاحظات مسؤول الخدمات — طباعة عمودية A4.',
       kind: 'attendance',
       icon: <ClipboardCheck className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />,
       accent: 'emerald',
@@ -71,16 +73,24 @@ export const DailyOpsView: React.FC<DailyOpsViewProps> = ({ data, startDay, open
   const printDayCard = (c: CardDef, blank: boolean) => {
     openPrint(
       `${c.title} — اليوم ${day}${blank ? ' (فراغ)' : ''}`,
-      <PrintSheetRenderer type={c.kind} data={data} dayNum={day} blank={blank} />,
-      c.kind === 'attendance'
+      <PrintSheetRenderer type={c.kind} data={data} dayNum={day} blank={blank} />
     );
   };
 
   const printMonthCard = (c: CardDef, blank: boolean) => {
     openPrint(
       `${c.title} — ${monthName} كاملاً (${daysInMonth} ورقة، كل يوم بتاريخه)${blank ? ' — نسخة فراغ' : ''}`,
-      <MonthPages kind={c.kind} data={data} days={dayNums} blank={blank} />,
-      c.kind === 'attendance'
+      <MonthPages kind={c.kind} data={data} days={dayNums} blank={blank} />
+    );
+  };
+
+  const printRangeCard = (c: CardDef, blank: boolean) => {
+    const a = Math.max(1, Math.min(rangeFrom, rangeTo));
+    const b2 = Math.min(daysInMonth, Math.max(rangeFrom, rangeTo));
+    const dayList = Array.from({ length: b2 - a + 1 }, (_, i) => a + i);
+    openPrint(
+      `${c.title} — من اليوم ${a} إلى اليوم ${b2} (${dayList.length} ورقة، كل يوم بتاريخه)${blank ? ' — نسخة فراغ' : ''}`,
+      <MonthPages kind={c.kind} data={data} days={dayList} blank={blank} />
     );
   };
 
@@ -167,7 +177,40 @@ export const DailyOpsView: React.FC<DailyOpsViewProps> = ({ data, startDay, open
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">{c.title}</h3>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">{c.desc}</p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">طباعة أعداد أيام:</span>
+              <label className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                من
+                <input
+                  type="number"
+                  min={1}
+                  max={daysInMonth}
+                  value={rangeFrom}
+                  onChange={(e) => setRangeFrom(Math.max(1, Math.min(daysInMonth, Number(e.target.value) || 1)))}
+                  className="w-14 text-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1 py-1 text-[11px] font-black focus:outline-none focus:border-emerald-600"
+                />
+              </label>
+              <label className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                إلى
+                <input
+                  type="number"
+                  min={1}
+                  max={daysInMonth}
+                  value={rangeTo}
+                  onChange={(e) => setRangeTo(Math.max(1, Math.min(daysInMonth, Number(e.target.value) || 1)))}
+                  className="w-14 text-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1 py-1 text-[11px] font-black focus:outline-none focus:border-emerald-600"
+                />
+              </label>
+            </div>
             <div className="pt-1 grid grid-cols-1 gap-2">
+              <button onClick={() => printRangeCard(c, false)} className={accentBtn(c, true)}>
+                <Layers className="w-3.5 h-3.5" />
+                <span>طباعة المدى المحدد بتاريخه (من {Math.min(rangeFrom, rangeTo)} إلى {Math.max(rangeFrom, rangeTo)} — كل يوم صفحة)</span>
+              </button>
+              <button onClick={() => printRangeCard(c, true)} className={accentBtn(c, false)}>
+                <FileText className="w-3.5 h-3.5" />
+                <span>طباعة المدى المحدد فراغاً</span>
+              </button>
               <button onClick={() => printDayCard(c, false)} className={accentBtn(c, true)}>
                 <Printer className="w-3.5 h-3.5" />
                 <span>طباعة اليوم {day} بتاريخه</span>

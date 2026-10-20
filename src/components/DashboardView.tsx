@@ -135,31 +135,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span>تحرير تقرير اليوم ({currentDay} {displayMonth})</span>
             </button>
             <button
-              onClick={() => {
-                openPrint(
-                  `تقرير مسؤول الخدمة الداخلية — اليوم ${currentDay}`,
-                  <PrintSheetRenderer type="internalSrv" data={data} dayNum={currentDay} />
-                );
-              }}
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/25 transition-colors flex items-center gap-2 cursor-pointer"
-            >
-              <Building2 className="w-4 h-4" />
-              <span>تقرير مسؤول الخدمة الداخلية</span>
-            </button>
-            <button
-              onClick={() => {
-                openPrint(
-                  `كشف الحضور اليومي للعمال — اليوم ${currentDay}`,
-                  <PrintSheetRenderer type="attendance" data={data} dayNum={currentDay} />,
-                  true
-                );
-              }}
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/25 transition-colors flex items-center gap-2 cursor-pointer"
-            >
-              <ClipboardCheck className="w-4 h-4" />
-              <span>ورقة حضور العمال</span>
-            </button>
-            <button
               onClick={() => onNavigate('doclist')}
               className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/25 transition-colors flex items-center gap-2 cursor-pointer"
             >
@@ -421,6 +396,42 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">طباعة تقرير اليوم</div>
               <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">معاينة ورقية رسمية</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() =>
+              openPrint(
+                `تقرير مسؤول الخدمة الداخلية — اليوم ${currentDay}`,
+                <PrintSheetRenderer type="internalSrv" data={data} dayNum={currentDay} />
+              )
+            }
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">تقرير مسؤول الخدمة الداخلية</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">طباعة اليوم {currentDay} بتاريخه</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() =>
+              openPrint(
+                `كشف الحضور اليومي للعمال — اليوم ${currentDay}`,
+                <PrintSheetRenderer type="attendance" data={data} dayNum={currentDay} />
+              )
+            }
+            className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+              <ClipboardCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">ورقة حضور العمال</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">طباعة اليوم {currentDay} بتاريخه</div>
             </div>
           </button>
 

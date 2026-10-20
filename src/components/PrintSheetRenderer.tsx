@@ -29,7 +29,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
   // Landscape orientation for wide tables (annual program). Written into <head>
   // AFTER the bundled stylesheet so it wins over the default portrait @page.
-  const isLandscapeDoc = type === 'sijl' || type === 'modawama' || type === 'attendance' || (type === 'doc' && docKey === 'barnamij_sanawi');
+  const isLandscapeDoc = type === 'sijl' || type === 'modawama' || (type === 'doc' && docKey === 'barnamij_sanawi');
   useEffect(() => {
     const id = 'print-orientation-override';
     let el = document.getElementById(id) as HTMLStyleElement | null;
@@ -424,11 +424,11 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
       ? '................ /................ / 20......'
       : `${weekday} ${dayNum} ${displayMonth} ${reportYear}`;
     const workersList = blank ? [] : data.workers || [];
-    // نسخة الفراغ تأخذ 18 صفاً فارغاً جاهزاً؛ نسخة اليوم تساوي عدد العمال حرفياً (تنمو آلياً)
-    const blankRows = 18;
-    // حجم الصفوف يتبع عدد العمال: خانات أكبر للكتابة مع قائمة قصيرة، وضغط تلقائي مع القوائم الطويلة
-    const attRoomy = blank ? true : workersList.length <= 15;
-    const attRowH = blank ? 18 : attRoomy ? 22 : 16;
+    // نسخة الفراغ تأخذ صفاً فارغاً جاهزاً؛ نسخة اليوم تساوي عدد العمال حرفياً (تنمو آلياً)
+    const blankRows = 26;
+    // الطباعة عمودية (Portrait): مساحة رأسية واسعة — صفوف وأسطر ملاحظات أكبر مع القوائم القصيرة
+    const attRoomy = !blank && workersList.length <= 18;
+    const attRowH = blank ? 20 : attRoomy ? 26 : 18;
 
     const signBlock = (title: string) => (
       <div className="border border-black">
@@ -439,9 +439,9 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
             <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
           </div>
           <div className="mt-0.5"><b>الملاحظات :</b></div>
-          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 16 : 12 }}></div>
-          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 16 : 12 }}></div>
-          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 16 : 12 }}></div>
+          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 22 : 14 }}></div>
+          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 22 : 14 }}></div>
+          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 22 : 14 }}></div>
           <div className="flex items-center gap-1 mt-0.5">
             <b>الإمضـــــاء :</b>
             <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
@@ -471,13 +471,13 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
         <table className="w-full border-collapse text-[10px]">
           <thead>
             <tr>
-              <th className="border border-black p-0.5 min-w-[30px]">التسلسل</th>
-              <th className="border border-black p-0.5 min-w-[130px]">الاسم واللقب</th>
-              <th className="border border-black p-0.5 min-w-[120px]">الوظيفة</th>
-              <th className="border border-black p-0.5 min-w-[100px]">توقيت الدخـــول</th>
-              <th className="border border-black p-0.5 min-w-[100px]">توقيت الخروج</th>
-              <th className="border border-black p-0.5 min-w-[130px]">خروج ورجوع أثناء العمل</th>
-              <th className="border border-black p-0.5 min-w-[110px]">الإمضـــاء</th>
+              <th className="border border-black p-0.5 min-w-[26px]">التسلسل</th>
+              <th className="border border-black p-0.5 min-w-[120px]">الاسم واللقب</th>
+              <th className="border border-black p-0.5 min-w-[95px]">الوظيفة</th>
+              <th className="border border-black p-0.5 min-w-[80px]">توقيت الدخـــول</th>
+              <th className="border border-black p-0.5 min-w-[80px]">توقيت الخروج</th>
+              <th className="border border-black p-0.5 min-w-[105px]">خروج ورجوع أثناء العمل</th>
+              <th className="border border-black p-0.5 min-w-[90px]">الإمضـــاء</th>
             </tr>
           </thead>
           <tbody>
@@ -515,13 +515,8 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           {signBlock('العـــامل المستلم للمهام ليــــــلا')}
         </div>
 
-        <div className="flex gap-1.5 items-stretch">
-          <div className="flex-1 border border-black p-1.5 text-[9px]" style={{ minHeight: attRoomy ? 82 : 58 }}>
-            <b>ملاحظات مسؤول الخدمات :</b>
-          </div>
-          <div className="flex-1 border border-black p-1.5 text-[9px]" style={{ minHeight: attRoomy ? 82 : 58 }}>
-            <b>ملاحظات المقتصد :</b>
-          </div>
+        <div className="border border-black p-1.5 text-[9px]" style={{ minHeight: attRoomy ? 92 : 68 }}>
+          <b>ملاحظات مسؤول الخدمات :</b>
         </div>
 
         <div className="text-[9px] border border-black p-1 bg-slate-50 print:bg-white">
