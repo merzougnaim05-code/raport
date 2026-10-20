@@ -426,16 +426,22 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
     const workersList = blank ? [] : data.workers || [];
     const placeholderRows = Math.max(3, 26 - workersList.length);
 
-    const signRow = (label: string) => (
-      <div className="flex items-center gap-4 border border-black px-2 py-1.5 h-10">
-        <div className="text-[11px] font-black min-w-[150px]">{label}</div>
-        <div className="flex-1 text-[10px] flex items-center gap-1">
-          <b>الإسـم و اللـقـب :</b>
-          <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
-        </div>
-        <div className="flex-1 text-[10px] flex items-center gap-1">
-          <b>الإمضـــــاء :</b>
-          <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
+    const signBlock = (title: string) => (
+      <div className="border border-black">
+        <div className="text-center text-[11px] font-black border-b border-black py-1">{title}</div>
+        <div className="px-1.5 py-1 text-[10px]">
+          <div className="flex items-center gap-1">
+            <b>الإسـم و اللـقـب :</b>
+            <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
+          </div>
+          <div className="mt-1"><b>الملاحظات :</b></div>
+          <div className="border-b border-dotted border-black h-4"></div>
+          <div className="border-b border-dotted border-black h-4"></div>
+          <div className="border-b border-dotted border-black h-4"></div>
+          <div className="flex items-center gap-1 mt-1">
+            <b>الإمضـــــاء :</b>
+            <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
+          </div>
         </div>
       </div>
     );
@@ -482,18 +488,12 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           </tbody>
         </table>
 
-        <div className="grid grid-cols-3 gap-1.5 pt-1">
-          <div>
-            <div className="text-center text-[11px] font-black border border-black border-b-0 py-1">العــامل المستلم للمهام صبــاحاً</div>
-            {signRow('')}
-          </div>
-          <div>
-            <div className="text-center text-[11px] font-black border border-black border-b-0 py-1">العـــامل المستلم للمهام مســـاءً</div>
-            {signRow('')}
-          </div>
-          <div>
-            <div className="text-center text-[11px] font-black border border-black border-b-0 py-1">العـــامل المستلم للمهام ليـــلاً</div>
-            {signRow('')}
+        {/* استلام المهام: صباحاً / مساءً / ليلاً */}
+        <div className="pt-1">
+          <div className="grid grid-cols-3 gap-1.5">
+            {signBlock('العـــامل المستلم للمهام صبــــاحاً')}
+            {signBlock('العـــامل المستلم للمهام مســـــاء')}
+            {signBlock('العـــامل المستلم للمهام ليــــــلا')}
           </div>
         </div>
 
@@ -571,7 +571,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
               </tr>
             </thead>
             <tbody>
-              {(blank ? [] : data.workers || []).map((w, idx) => {
+              {(data.workers || []).map((w, idx) => {
                 const st = statusFor(w.id);
                 const isAbs = isAbsent(st);
                 const isLate = st === 'تأخر';
@@ -580,18 +580,17 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
                     <td className="border border-black px-1 text-center font-bold">{idx + 1}</td>
                     <td className="border border-black px-1 font-semibold">{w.name}</td>
                     <td className="border border-black px-1 text-center">{w.job}</td>
-                    <td className="border border-black px-1 text-center">{isLate ? 'تأخر' : ''}</td>
+                    <td className="border border-black px-1 text-center">{blank ? '' : isLate ? 'تأخر' : ''}</td>
                     <td className="border border-black px-1">&nbsp;</td>
-                    <td className="border border-black px-1 text-center">{isAbs && !isLate ? (st || '') : ''}</td>
+                    <td className="border border-black px-1 text-center">{blank ? '' : isAbs && !isLate ? (st || '') : ''}</td>
                     <td className="border border-black px-1">&nbsp;</td>
                   </tr>
                 );
               })}
-              {blank ||
-                !(data.workers || []).length
-                ? Array.from({ length: 5 }, (_, i) => (
+              {Math.max(0, 19 - (data.workers || []).length) > 0
+                ? Array.from({ length: Math.max(0, 19 - (data.workers || []).length) }, (_, i) => (
                     <tr key={`b${i}`}>
-                      <td className="border border-black px-1 text-center font-bold">{i + 1}</td>
+                      <td className="border border-black px-1 text-center font-bold">{(data.workers || []).length + i + 1}</td>
                       <td className="border border-black px-1">&nbsp;</td>
                       <td className="border border-black px-1">&nbsp;</td>
                       <td className="border border-black px-1">&nbsp;</td>
