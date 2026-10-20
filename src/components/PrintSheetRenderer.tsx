@@ -424,7 +424,9 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
       ? '................ /................ / 20......'
       : `${weekday} ${dayNum} ${displayMonth} ${reportYear}`;
     const workersList = blank ? [] : data.workers || [];
-    const placeholderRows = Math.max(3, 18 - workersList.length);
+    // حجم الصفوف يتبع عدد العمال: خانات أكبر للكتابة مع قائمة قصيرة، وضغط تلقائي مع القوائم الطويلة
+    const attRoomy = workersList.length <= 18;
+    const attRowH = attRoomy ? 24 : 18;
 
     const signBlock = (title: string) => (
       <div className="border border-black">
@@ -435,8 +437,9 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
             <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
           </div>
           <div className="mt-0.5"><b>الملاحظات :</b></div>
-          <div className="border-b border-dotted border-black h-3.5"></div>
-          <div className="border-b border-dotted border-black h-3.5"></div>
+          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 18 : 12 }}></div>
+          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 18 : 12 }}></div>
+          <div className="border-b border-dotted border-black" style={{ height: attRoomy ? 18 : 12 }}></div>
           <div className="flex items-center gap-1 mt-0.5">
             <b>الإمضـــــاء :</b>
             <span className="flex-1 border-b border-dotted border-black">&nbsp;</span>
@@ -477,27 +480,17 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           </thead>
           <tbody>
             {workersList.map((w, idx) => (
-              <tr key={w.id}>
-                <td className="border border-black px-1 py-[1px] text-center font-bold">{idx + 1}</td>
-                <td className="border border-black px-1 py-[1px] font-semibold">{w.name}</td>
-                <td className="border border-black px-1 py-[1px] text-center">{w.job}</td>
-                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+              <tr key={w.id} style={{ height: attRowH }}>
+                <td className="border border-black px-1 text-center font-bold">{idx + 1}</td>
+                <td className="border border-black px-1 font-semibold">{w.name}</td>
+                <td className="border border-black px-1 text-center">{w.job}</td>
+                <td className="border border-black px-1">&nbsp;</td>
+                <td className="border border-black px-1">&nbsp;</td>
+                <td className="border border-black px-1">&nbsp;</td>
+                <td className="border border-black px-1">&nbsp;</td>
               </tr>
             ))}
-            {Array.from({ length: placeholderRows }, (_, i) => (
-              <tr key={`p${i}`}>
-                <td className="border border-black px-1 py-[1px] text-center font-bold">{workersList.length + i + 1}</td>
-                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-              </tr>
-            ))}
+            {/* لا صفوف زائدة — الصفوف تزيد آلياً مع عدد العمال */}
           </tbody>
         </table>
 
@@ -509,10 +502,10 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
         </div>
 
         <div className="flex gap-1.5 items-stretch">
-          <div className="flex-1 border border-black p-1.5 min-h-[52px] text-[9px]">
+          <div className="flex-1 border border-black p-1.5 text-[9px]" style={{ minHeight: attRoomy ? 82 : 58 }}>
             <b>ملاحظات مسؤول الخدمات :</b>
           </div>
-          <div className="flex-1 border border-black p-1.5 min-h-[52px] text-[9px]">
+          <div className="flex-1 border border-black p-1.5 text-[9px]" style={{ minHeight: attRoomy ? 82 : 58 }}>
             <b>ملاحظات المقتصد :</b>
           </div>
         </div>
@@ -540,6 +533,11 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
     const day = blank ? null : data.days?.[dayNum];
     const statusFor = (wid: string) => (day ? (day.workerStatus || {})[wid] : undefined);
     const isAbsent = (st?: string) => !!st && !['حاضر', 'يوم كامل', ''].includes(st);
+    // مساحة أكبر للكتابة عندما يكون عدد العمال قليلاً، وضغط تلقائي عند زيادة القائمة
+    const roomy = (data.workers || []).length <= 16;
+    const boxH = roomy ? 66 : 46;
+    const workH = roomy ? 95 : 72;
+    const signH = roomy ? 110 : 84;
 
     return (
       <div className="space-y-1.5 text-slate-900 leading-tight font-sans" dir="rtl">
@@ -549,17 +547,17 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
         <div>
           <div className="text-[10px] font-black mb-0.5">1- حـــــالة الـمـحلات</div>
           <div className="grid grid-cols-2 gap-1">
-            <div className="border border-black p-1 min-h-[46px] text-[9px]"><b>الإنـــــــــارة :</b></div>
-            <div className="border border-black p-1 min-h-[46px] text-[9px]"><b>التدفـئـــــة :</b></div>
-            <div className="border border-black p-1 min-h-[46px] text-[9px]"><b>النظـــــافة :</b></div>
-            <div className="border border-black p-1 min-h-[46px] text-[9px]"><b>الإتـلافـــــات :</b></div>
+            <div className="border border-black p-1 text-[9px]" style={{ minHeight: boxH }}><b>الإنـــــــــارة :</b></div>
+            <div className="border border-black p-1 text-[9px]" style={{ minHeight: boxH }}><b>التدفـئـــــة :</b></div>
+            <div className="border border-black p-1 text-[9px]" style={{ minHeight: boxH }}><b>النظـــــافة :</b></div>
+            <div className="border border-black p-1 text-[9px]" style={{ minHeight: boxH }}><b>الإتـلافـــــات :</b></div>
           </div>
         </div>
 
         {/* 2- الحالة الأمنية */}
         <div>
           <div className="text-[10px] font-black mb-0.5">2- الحالة الأمنية</div>
-          <div className="border border-black p-1 min-h-[46px] text-[9px]">&nbsp;</div>
+          <div className="border border-black p-1 text-[9px]" style={{ minHeight: boxH }}>&nbsp;</div>
         </div>
 
         {/* 3- التأخرات والغيابات */}
@@ -586,42 +584,31 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
                 const st = statusFor(w.id);
                 const isAbs = isAbsent(st);
                 const isLate = st === 'تأخر';
+                const rowStyle = { height: roomy ? 20 : 16 };
                 return (
-                  <tr key={w.id}>
-                    <td className="border border-black px-1 py-[1px] text-center font-bold">{idx + 1}</td>
-                    <td className="border border-black px-1 py-[1px] font-semibold">{w.name}</td>
-                    <td className="border border-black px-1 py-[1px] text-center">{w.job}</td>
-                    <td className="border border-black px-1 py-[1px] text-center">{blank ? '' : isLate ? 'تأخر' : ''}</td>
-                    <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                    <td className="border border-black px-1 py-[1px] text-center">{blank ? '' : isAbs && !isLate ? (st || '') : ''}</td>
-                    <td className="border border-black px-1 py-[1px]">&nbsp;</td>
+                  <tr key={w.id} style={rowStyle}>
+                    <td className="border border-black px-1 text-center font-bold">{idx + 1}</td>
+                    <td className="border border-black px-1 font-semibold">{w.name}</td>
+                    <td className="border border-black px-1 text-center">{w.job}</td>
+                    <td className="border border-black px-1 text-center">{blank ? '' : isLate ? 'تأخر' : ''}</td>
+                    <td className="border border-black px-1">&nbsp;</td>
+                    <td className="border border-black px-1 text-center">{blank ? '' : isAbs && !isLate ? (st || '') : ''}</td>
+                    <td className="border border-black px-1">&nbsp;</td>
                   </tr>
                 );
               })}
-              {Math.max(0, 19 - (data.workers || []).length) > 0
-                ? Array.from({ length: Math.max(0, 19 - (data.workers || []).length) }, (_, i) => (
-                    <tr key={`b${i}`}>
-                      <td className="border border-black px-1 py-[1px] text-center font-bold">{(data.workers || []).length + i + 1}</td>
-                      <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                      <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                      <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                      <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                      <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                      <td className="border border-black px-1 py-[1px]">&nbsp;</td>
-                    </tr>
-                  ))
-                : null}
+              {/* لا صفوف زائدة — الجدول ينمو تلقائياً مع عدد العمال */}
             </tbody>
           </table>
         </div>
 
         {/* 4 + 5 الأعمال المنجزة والمستعجلة */}
         <div className="grid grid-cols-2 gap-1">
-          <div className="border border-black p-1 min-h-[82px] text-[9px]">
+          <div className="border border-black p-1 text-[9px]" style={{ minHeight: workH }}>
             <b>الأعمال المنجزة :</b>{' '}
             {blank ? '' : day?.worksDone || '—'}
           </div>
-          <div className="border border-black p-1 min-h-[82px] text-[9px]">
+          <div className="border border-black p-1 text-[9px]" style={{ minHeight: workH }}>
             <b>الأعمال المستعجلة :</b>{' '}
             {blank ? '' : day?.worksUrgent || '—'}
           </div>
@@ -629,11 +616,11 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
 
         {/* الإمضاءات */}
         <div className="flex gap-1.5 items-stretch">
-          <div className="flex-1 border border-black p-1 min-h-[88px] text-[9px]">
+          <div className="flex-1 border border-black p-1 text-[9px]" style={{ minHeight: signH }}>
             <b>مسؤول الخدمة الداخلية</b>
             <div className="text-slate-600 print:text-black">( ملاحظات و توقـيع )</div>
           </div>
-          <div className="flex-1 border border-black p-1 min-h-[88px] text-[9px]">
+          <div className="flex-1 border border-black p-1 text-[9px]" style={{ minHeight: signH }}>
             <b>المقتصـــــد</b>
             <div className="text-slate-600 print:text-black">( ملاحظات ، ختم و توقـيع )</div>
           </div>
