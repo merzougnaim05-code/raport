@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AppData, NavView } from '../types';
 import { DOC_LIST } from '../data/documentsConfig';
 import { resolveReportYear, getWeekdayName, getDaysInMonth, getCanonicalMonthName } from '../utils/dateUtils';
@@ -51,6 +51,46 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const calMonth = data.meta.monthNum || new Date().getMonth() + 1;
   const daysInMonth = getDaysInMonth(data.meta);
   const displayMonth = getCanonicalMonthName(calMonth) || data.meta.monthName;
+  // نافذة اختيار طباعة الأوراق اليومية (مدى مخصص / شهر كامل / فراغ)
+  const [opsSheet, setOpsSheet] = useState<null | { kind: 'internalSrv' | 'attendance'; title: string }>(null);
+  const [opsFrom, setOpsFrom] = useState<number>(1);
+  const [opsTo, setOpsTo] = useState<number>(daysInMonth);
+  const [opsBlank, setOpsBlank] = useState<boolean>(false);
+
+  const printOpsRange = () => {
+    if (!opsSheet) return;
+    const a = Math.max(1, Math.min(opsFrom, opsTo));
+    const b = Math.min(daysInMonth, Math.max(opsFrom, opsTo));
+    const list = Array.from({ length: b - a + 1 }, (_, i) => a + i);
+    openPrint(
+      `${opsSheet.title} — من اليوم ${a} إلى اليوم ${b} (${list.length} ورقة، كل يوم بتاريخه)${opsBlank ? ' — نسخة فراغ' : ''}`,
+      <div>
+        {list.map((d, i) => (
+          <div key={d} style={{ breakAfter: i === list.length - 1 ? 'auto' : 'page' }}>
+            <PrintSheetRenderer type={opsSheet.kind} data={data} dayNum={d} blank={opsBlank} />
+          </div>
+        ))}
+      </div>
+    );
+    setOpsSheet(null);
+  };
+
+  const printOpsMonth = () => {
+    if (!opsSheet) return;
+    const list = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    openPrint(
+      `${opsSheet.title} — ${displayMonth} كاملاً (${daysInMonth} ورقة، كل يوم بتاريخه)${opsBlank ? ' — نسخة فراغ' : ''}`,
+      <div>
+        {list.map((d, i) => (
+          <div key={d} style={{ breakAfter: i === list.length - 1 ? 'auto' : 'page' }}>
+            <PrintSheetRenderer type={opsSheet.kind} data={data} dayNum={d} blank={opsBlank} />
+          </div>
+        ))}
+      </div>
+    );
+    setOpsSheet(null);
+  };
+
   // Compute metrics
   let filledDaysCount = 0;
   let totalPresentCount = 0;
@@ -400,12 +440,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </button>
 
           <button
-            onClick={() =>
-              openPrint(
-                `تقرير مسؤول الخدمة الداخلية — اليوم ${currentDay}`,
-                <PrintSheetRenderer type="internalSrv" data={data} dayNum={currentDay} />
-              )
-            }
+            onClick={() => { setOpsBlank(false); setOpsFrom(1); setOpsTo(daysInMonth); setOpsSheet({ kind: 'internalSrv', title: 'تقرير مسؤول الخدمة الداخلية' }); }}
             className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
           >
             <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
@@ -413,17 +448,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
             <div>
               <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">تقرير مسؤول الخدمة الداخلية</div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">طباعة اليوم {currentDay} بتاريخه</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">مدى أيام / يوم واحد / شهر كامل</div>
             </div>
           </button>
 
           <button
-            onClick={() =>
-              openPrint(
-                `كشف الحضور اليومي للعمال — اليوم ${currentDay}`,
-                <PrintSheetRenderer type="attendance" data={data} dayNum={currentDay} />
-              )
-            }
+            onClick={() => { setOpsBlank(false); setOpsFrom(1); setOpsTo(daysInMonth); setOpsSheet({ kind: 'attendance', title: 'كشف الحضور اليومي للعمال' }); }}
             className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-slate-800 text-center items-center transition-all cursor-pointer flex flex-col justify-between"
           >
             <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
@@ -431,7 +461,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
             <div>
               <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">ورقة حضور العمال</div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">طباعة اليوم {currentDay} بتاريخه</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">مدى أيام / يوم واحد / شهر كامل</div>
             </div>
           </button>
 
@@ -591,6 +621,122 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
       </div>
       </div>
+
+      {/* ===== نافذة اختيار الطباعة (مدى أيام / شهر كامل / فراغ) ===== */}
+      {opsSheet && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          onClick={() => setOpsSheet(null)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl w-full max-w-md p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+              {opsSheet.kind === 'attendance' ? (
+                <ClipboardCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+              ) : (
+                <Building2 className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+              )}
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                طباعة: {opsSheet.title}
+              </h3>
+            </div>
+
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+              اختر المدى الزمني — كل يوم يُطبع على <b>صفحة مستقلة مساهمة بتاريخه الكامل</b> ({displayMonth}).
+            </p>
+
+            {/* من / إلى */}
+            <div className="flex items-center justify-center gap-3">
+              <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                من يوم
+                <input
+                  type="number"
+                  min={1}
+                  max={daysInMonth}
+                  value={opsFrom}
+                  onChange={(e) => setOpsFrom(Math.max(1, Math.min(daysInMonth, Number(e.target.value) || 1)))}
+                  className="w-16 text-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-sm font-black focus:outline-none focus:border-emerald-600"
+                />
+              </label>
+              <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                إلى يوم
+                <input
+                  type="number"
+                  min={1}
+                  max={daysInMonth}
+                  value={opsTo}
+                  onChange={(e) => setOpsTo(Math.max(1, Math.min(daysInMonth, Number(e.target.value) || 1)))}
+                  className="w-16 text-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-sm font-black focus:outline-none focus:border-emerald-600"
+                />
+              </label>
+            </div>
+
+            {/* اختصارات سريعة */}
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <button
+                onClick={() => { setOpsFrom(1); setOpsTo(daysInMonth); }}
+                className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                الشهر كاملاً (1–{daysInMonth})
+              </button>
+              <button
+                onClick={() => { setOpsFrom(1); setOpsTo(currentDay); }}
+                className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                من البداية إلى اليوم {currentDay}
+              </button>
+              <button
+                onClick={() => { setOpsFrom(currentDay); setOpsTo(currentDay); }}
+                className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                اليوم {currentDay} فقط
+              </button>
+            </div>
+
+            {/* نسخة فراغ */}
+            <label className="flex items-center justify-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={opsBlank}
+                onChange={(e) => setOpsBlank(e.target.checked)}
+                className="w-4 h-4 accent-emerald-600 cursor-pointer"
+              />
+              <span>طباعة نسخ فارغة (للتعبئة اليدوية)</span>
+            </label>
+
+            {/* أزرار التنفيذ */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={printOpsRange}
+                className={`col-span-2 py-2.5 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer ${
+                  opsSheet.kind === 'attendance'
+                    ? 'bg-emerald-600 hover:bg-emerald-700'
+                    : 'bg-indigo-600 hover:bg-indigo-700'
+                }`}
+              >
+                <Printer className="w-4 h-4" />
+                <span>
+                  طباعة المدى ({Math.min(opsFrom, opsTo)} – {Math.max(opsFrom, opsTo)}) — كل يوم صفحة
+                </span>
+              </button>
+              <button
+                onClick={printOpsMonth}
+                className="py-2 rounded-xl font-bold text-[11px] bg-slate-800 dark:bg-slate-700 text-white hover:bg-slate-700 dark:hover:bg-slate-600 cursor-pointer"
+              >
+                الشهر كاملاً ({daysInMonth} ورقة)
+              </button>
+              <button
+                onClick={() => setOpsSheet(null)}
+                className="py-2 rounded-xl font-bold text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
