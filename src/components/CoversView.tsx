@@ -42,6 +42,19 @@ export const CoversView: React.FC<CoversViewProps> = ({ meta, onPrintCover }) =>
     counts[c.category] = (counts[c.category] || 0) + 1;
   });
 
+  // تجميع الأغلفة في أقسام: عنوان الملف (الواجهة) + أزرار وثائقه تحته — كما في ملف وورد "الوثائق التي يتكون منها ملف الميزانية"
+  const parentCovers = ALL_COVERS.filter((c) => !c.parentKey);
+  const childrenOf = (key: string) => ALL_COVERS.filter((c) => c.parentKey === key);
+  type CoverSection = { parent: CoverFile; kids: CoverFile[]; showSelf: boolean };
+  const sections: CoverSection[] = [];
+  for (const p of parentCovers) {
+    const kidsAll = childrenOf(p.key);
+    const selfVisible = filtered.some((c) => c.key === p.key);
+    const kidVisible = kidsAll.filter((k) => filtered.some((f) => f.key === k.key));
+    if (!selfVisible && kidVisible.length === 0) continue;
+    sections.push({ parent: p, kids: selfVisible ? kidsAll : kidVisible, showSelf: selfVisible });
+  }
+
   const getIcon = (cat: string) => {
     switch (cat) {
       case 'ملفات المقتصدية':
@@ -307,69 +320,86 @@ export const CoversView: React.FC<CoversViewProps> = ({ meta, onPrintCover }) =>
         })}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((c) => {
-          const Icon = getIcon(c.category);
-          return (
-            <div
-              key={c.key}
-              className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:shadow-md transition-all p-5 flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <span className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 group-hover:bg-emerald-100 transition-colors">
-                    <Icon className="w-5 h-5" />
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-full">
-                      {c.number}
+      {sections.map(({ parent, kids, showSelf }) => {
+        const Icon = getIcon(parent.category);
+        const isEconomy = parent.category === 'ملفات المقتصدية';
+        return (
+          <section key={parent.key} dir="rtl" className="rounded-2xl border-2 border-emerald-800/70 dark:border-emerald-700/60 overflow-hidden">
+            {/* ===== عنوان الملف — بطاقة مزخرفة بأسلوب ملف الوورد ===== */}
+            <div className="bg-gradient-to-b from-[#123524] via-[#0e2a1c] to-[#0a2117] dark:from-[#0d2818] dark:via-[#0a1f13] dark:to-[#07170e] px-4 sm:px-6 py-4">
+              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-5">
+                <span className="p-2.5 rounded-xl bg-[#fcbb00] text-[#1c2e24] shrink-0 shadow-sm">
+                  <Icon className="w-6 h-6" />
+                </span>
+                <div className="flex-1 text-center sm:text-right">
+                  <div className="flex items-center gap-2 justify-center sm:justify-start">
+                    <span className="text-[11px] font-black text-[#1c2e24] bg-[#fcbb00] px-2.5 py-0.5 rounded-full">
+                      {parent.number}
                     </span>
-                    <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-                      {c.category}
-                    </span>
+                    <span className="text-[10px] font-semibold text-emerald-200/80">{parent.category}</span>
                   </div>
+                  <h3 className="text-lg sm:text-xl font-black text-[#fcbb00] mt-1 leading-snug" style={{ fontFamily: "'Amiri','Cairo',serif" }}>
+                    {parent.title}
+                  </h3>
+                  <p className="text-[11px] text-emerald-100/70 mt-0.5 leading-relaxed">{parent.description}</p>
                 </div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-emerald-800 transition-colors">
-                  {c.title}
-                </h3>
-                {c.subtitleFr && (
-                  <div className="text-[11px] font-semibold text-slate-400 tracking-wider uppercase mt-0.5">
-                    {c.subtitleFr}
-                  </div>
-                )}
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 line-clamp-2 leading-relaxed">
-                  {c.description}
-                  {c.parentKey
-                    ? ' — غلاف فرعي بواجهة مستقلة للطباعة.'
-                    : c.category === 'السجلات'
-                      ? ' — واجهة مزخرفة جاهزة للطباعة.'
-                      : ` — ${c.docs.length} وثائق.`}
-                </p>
-              </div>
-              <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
-                <button
-                  onClick={() => setOpenedKey(c.key)}
-                  className="flex-1 py-2 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-600 text-emerald-800 dark:text-emerald-300 hover:text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>{c.category === 'السجلات' || c.parentKey ? 'عرض الواجهة' : 'فتح صفحات الملف'}</span>
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() =>
-                    onPrintCover(c.key, c.category === 'السجلات' || c.parentKey ? 'front' : 'list')
-                  }
-                  title={c.category === 'السجلات' || c.parentKey ? 'طباعة الواجهة' : 'طباعة الغلاف الخارجي'}
-                  className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
-                >
-                  <Printer className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => onPrintCover(parent.key, isEconomy ? 'list' : 'front')}
+                    title={isEconomy ? 'طباعة الغلاف الخارجي + قائمة الوثائق' : 'طباعة الواجهة المزخرفة'}
+                    className="px-3 py-2 rounded-xl bg-[#fcbb00] hover:bg-amber-300 text-[#1c2e24] font-black text-[11px] transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{isEconomy ? 'غلاف الملف' : 'الواجهة'}</span>
+                  </button>
+                  <button
+                    onClick={() => setOpenedKey(parent.key)}
+                    title="عرض تفاصيل الملف ومحتوياته"
+                    className="px-3 py-2 rounded-xl border border-[#fcbb00]/40 hover:bg-white/10 text-[#fcbb00] font-black text-[11px] transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">تفاصيل</span>
+                  </button>
+                </div>
               </div>
             </div>
-          );
-        })}
-      </div>
 
-      {filtered.length === 0 && (
+            {/* أزرار وثائق الملف + شريط معلومات الحفظ */}
+            <div className="bg-white dark:bg-slate-900 p-4 space-y-3">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 border-b border-emerald-800/10 dark:border-emerald-700/20 pb-2">
+                <span>🧾 مدة الحفظ بالمكتب: {parent.keepOffice}</span>
+                <span>🏛️ الأرشيف: {parent.keepArchive}</span>
+                {kids.length > 0 && <span>✦ أزرار الواجهات: {kids.length} جاهزة للطباعة</span>}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {kids.map((k) => (
+                  <button
+                    key={k.key}
+                    onClick={() => onPrintCover(k.key, 'front')}
+                    title={`طباعة واجهة ${k.title} برقم ${k.number}`}
+                    className="group/kid flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-right transition-all cursor-pointer"
+                  >
+                    <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.5 rounded shrink-0 min-w-[52px] text-center">
+                      {k.number}
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 leading-snug flex-1">{k.title}</span>
+                    <Printer className="w-3.5 h-3.5 text-slate-300 group-hover/kid:text-emerald-700 transition-colors shrink-0" />
+                  </button>
+                ))}
+                {kids.length === 0 && showSelf && (
+                  <div className="col-span-full text-[11px] text-slate-500 dark:text-slate-400 text-center border border-dashed border-slate-200 dark:border-slate-700 rounded-xl py-3">
+                    {isEconomy
+                      ? `ملف مفتوح — اضغط «غلاف الملف» لطباعة الغلاف الخارجي وقائمة الوثائق (${parent.docs.length} وثيقة)`
+                      : 'اضغط «الواجهة» لطباعة الواجهة المزخرفة A4'}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        );
+      })}
+
+      {sections.length === 0 && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-400">
           <Archive className="w-10 h-10 mx-auto text-slate-300 mb-2" />
           <div className="font-bold text-sm text-slate-700 dark:text-slate-300">لم يتم العثور على أي غلاف</div>
