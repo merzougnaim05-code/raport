@@ -335,9 +335,9 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
             </div>
           </div>
           <div className="flex gap-1 items-stretch">
-            <div className="flex-1 border border-black p-2 min-h-[130px]">
+            <div className="flex-1 border border-black p-2 min-h-[130px] flex flex-col">
               <div className="mb-1 font-black">ملاحظات المقتصد:</div>
-              <div>
+              <div className="flex-1">
                 {blank
                   ? ''
                   : (day.economistNotes || [])
@@ -345,19 +345,18 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
                       .filter(Boolean)
                       .join(' — ') || day.notesEconomist || 'سير عادي للخدمة.'}
               </div>
+              <div className="pt-2"><b>حرر بـ:</b> ..............................</div>
             </div>
-            <div className="flex-1 border border-black p-2 min-h-[130px]">
+            <div className="flex-1 border border-black p-2 min-h-[130px] flex flex-col">
               <div className="mb-1 font-black">ملاحظات وتأشيرة المدير:</div>
-              <div>{blank ? '' : day.notesDirector || '—'}</div>
+              <div className="flex-1">{blank ? '' : day.notesDirector || '—'}</div>
+              <div className="pt-2"><b>حرر بـ:</b> ..............................</div>
             </div>
           </div>
         </div>
 
-        {/* Date and Signatures */}
+        {/* Signatures */}
         <div className="pt-1 text-[10px]">
-          <div className="text-left">
-            <b>حرر بـ:</b> {blank ? '............................... في ...............................' : day.signedAt || `بـ ${meta.municipality} في ${dayNum} ${displayMonth} ${reportYear}`}
-          </div>
           <div className="flex justify-around items-start text-center mt-3">
             <div className="w-48">
               <div className="font-bold text-xs">مقتصد المؤسسة</div>

@@ -18,20 +18,26 @@ export function getDefaultSchoolYear(now: Date = new Date()): string {
 
 /**
  * Resolve the Gregorian year for a day number in the current report month.
- * - If the viewed month is the current real month, trust the real year
- *   (fixes outdated "السنة الدراسية" setting, e.g. Sep 2026 showing 2025).
- * - Else with a "YYYY / YYYY" range: Sep-Dec => first year, Jan-Aug => second.
- * - Else single year or fallback to current year.
+ * السنة تُستمد حصريًا من «السنة الدراسية / المالية» التي أدخلها المستخدم:
+ * - "YYYY / YYYY": سبتمبر–ديسمبر => السنة الأولى، جانفي–أوت => السنة الثانية.
+ * - سنة واحدة => تُعتمد كما هي.
+ * لا فرض لسنة اليوم الحقيقي حتى لا "تتبدل" السنة عند تغيير الشهر.
  */
 export function resolveReportYear(meta: InstitutionMeta, now: Date = new Date()): number {
   const m = meta.monthNum || now.getMonth() + 1;
-  // Current month viewed => real calendar year is always correct.
-  if (m === now.getMonth() + 1) return now.getFullYear();
 
   const years = extractYears(meta.year || '');
   if (years.length >= 2) return m >= 9 ? years[0] : years[1];
   if (years.length === 1) return years[0];
   return now.getFullYear();
+}
+
+/** هل تبدو «السنة الدراسية» المدخلة منتهية الصلاحية مقارنة بسنة اليوم الحقيقية؟ */
+export function isSchoolYearStale(meta: InstitutionMeta, now: Date = new Date()): boolean {
+  const real = now.getFullYear();
+  const years = extractYears(meta.year || '');
+  if (years.length === 0) return true;
+  return !years.includes(real);
 }
 
 /** Arabic month names (canonical source — must match initialData.ARABIC_MONTHS). */

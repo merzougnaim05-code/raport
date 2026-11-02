@@ -1,7 +1,7 @@
 import React from 'react';
 import { InstitutionMeta } from '../types';
 import { ARABIC_MONTHS } from '../data/initialData';
-import { resolveReportYear, getDaysInMonth, getCanonicalMonthName } from '../utils/dateUtils';
+import { resolveReportYear, getDaysInMonth, getCanonicalMonthName, isSchoolYearStale } from '../utils/dateUtils';
 import { 
   Settings, 
   Save, 
@@ -260,6 +260,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             {monthMismatch && (
               <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold">
                 تم تصحيح اسم الشهر تلقائيًا إلى «{canonicalMonth}» ليطابق رقم الشهر {meta.monthNum}.
+              </p>
+            )}
+            {isSchoolYearStale(meta) && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold">
+                تنبيه: السنة الدراسية المدخلة لا تتضمن سنة اليوم ({new Date().getFullYear()}) — عدّلها أعلاه.
               </p>
             )}
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
