@@ -8,6 +8,12 @@
   "build": {
     "appId": "dz.mostasid.raport",
     "productName": "Raport-Portable",
+    "compression": "maximum",
+    "electronLanguages": [
+      "ar",
+      "fr",
+      "en-US"
+    ],
     "disableAsarIntegrity": true,
     "directories": {
       "output": "release"
@@ -25,7 +31,8 @@
           ]
         }
       ],
-      "signAndEditExecutable": false
+      "icon": "assets/icon-256.png",
+      "signExecutable": false
     },
     "portable": {
       "artifactName": "Raport-Portable-${version}.exe"
