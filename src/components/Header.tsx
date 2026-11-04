@@ -11,7 +11,9 @@ import {
   LayoutDashboard,
   Home,
   Moon,
-  Sun
+  Sun,
+  RefreshCw,
+  FileUp
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -29,6 +31,57 @@ interface HeaderProps {
   onToggleDarkMode: () => void;
   lastSavedText?: string;
 }
+
+/** واجهة التطبيق المكتبي (تُكشف في desktop/main فقط عبر preload) */
+type RaportDesktopApi = {
+  desktop: boolean;
+  updateFromSite: () => Promise<void>;
+  importUpdateFile: () => Promise<void>;
+};
+
+const DesktopUpdateBar: React.FC = () => {
+  const [busy, setBusy] = React.useState<string>('');
+  React.useEffect(() => {
+    const api = (window as any).raportDesktop as RaportDesktopApi | undefined;
+    if (!api || !api.onUpdateEvent) return;
+    return api.onUpdateEvent(() => setBusy(''));
+  }, []);
+
+  if (typeof window === 'undefined') return null;
+  const api = (window as any).raportDesktop as RaportDesktopApi | undefined;
+  if (!api || !api.desktop) return null;
+
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={async () => {
+          if (busy) return;
+          setBusy('site');
+          try { await api.updateFromSite(); } finally { setBusy(''); }
+        }}
+        disabled={!!busy}
+        title="تحديث التطبيق آليًا من الموقع (حزمة موقعة رسميًا)"
+        className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-[#1c2e24] bg-[#fcbb00] hover:bg-[#e0a800] transition-colors disabled:opacity-50 flex items-center gap-1 items-center cursor-pointer"
+      >
+        <RefreshCw className={`w-3.5 h-3.5 ${busy === 'site' ? 'animate-spin' : ''}`} />
+        <span>تحيّن</span>
+      </button>
+      <button
+        onClick={async () => {
+          if (busy) return;
+          setBusy('import');
+          try { await api.importUpdateFile(); } finally { setBusy(''); }
+        }}
+        disabled={!!busy}
+        title="تحديث يدوي باستيراد ملف .zip موقّع"
+        className="p-1.5 rounded-lg text-emerald-100 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-50 cursor-pointer"
+        aria-label="استيراد ملف تحيّن"
+      >
+        <FileUp className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
 
 export const Header: React.FC<HeaderProps> = ({
   meta,
@@ -80,6 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Left: quick actions */}
         <div className="flex items-center gap-1.5 sm:gap-2">
+          <DesktopUpdateBar />
           {/* Autosave status */}
           <div
             title={lastSavedText || 'الحفظ التلقائي نشط — تُحفظ كل التعديلات فورًا'}

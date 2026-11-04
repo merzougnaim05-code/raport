@@ -309,7 +309,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
                       <td className="border border-black p-1 font-semibold">{w.name}</td>
                       <td className="border border-black p-1">{w.job}</td>
                       <td className="border border-black p-1 text-center font-bold"></td>
-                      <td className="border border-black p-1"></td>
+                      <td className="border border-black p-1">{blank ? '' : day.workerNotes?.[w.id] || ''}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -350,7 +350,6 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
             <div className="flex-1 border border-black p-2 min-h-[130px] flex flex-col">
               <div className="mb-1 font-black">ملاحظات وتأشيرة المدير:</div>
               <div className="flex-1">{blank ? '' : day.notesDirector || '—'}</div>
-              <div className="pt-2"><b>حرر بـ:</b> ..............................</div>
             </div>
           </div>
         </div>
@@ -477,6 +476,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
               <th className="border border-black p-0.5 min-w-[80px]">توقيت الخروج</th>
               <th className="border border-black p-0.5 min-w-[105px]">خروج ورجوع أثناء العمل</th>
               <th className="border border-black p-0.5 min-w-[90px]">الإمضـــاء</th>
+              <th className="border border-black p-0.5 min-w-[110px]">ملاحظــات</th>
             </tr>
           </thead>
           <tbody>
@@ -490,6 +490,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
                     <td className="border border-black px-1">&nbsp;</td>
                     <td className="border border-black px-1">&nbsp;</td>
                     <td className="border border-black px-1">&nbsp;</td>
+                    <td className="border border-black px-1">&nbsp;</td>
                   </tr>
                 ))
               : workersList.map((w, idx) => (
@@ -497,6 +498,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
                 <td className="border border-black px-1 text-center font-bold">{idx + 1}</td>
                 <td className="border border-black px-1 font-semibold">{w.name}</td>
                 <td className="border border-black px-1 text-center">{w.job}</td>
+                <td className="border border-black px-1">&nbsp;</td>
                 <td className="border border-black px-1">&nbsp;</td>
                 <td className="border border-black px-1">&nbsp;</td>
                 <td className="border border-black px-1">&nbsp;</td>

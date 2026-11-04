@@ -152,6 +152,16 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
     });
   };
 
+  // ملاحظات كل عامل (تظهر في عمود «ملاحظات» بجدول العمال عند الطباعة)
+  const handleWorkerNote = (workerId: string, value: string) => {
+    onUpdateDay(dayNum, (prev) => {
+      const wn = { ...(prev.workerNotes || {}) };
+      if (value.trim()) wn[workerId] = value;
+      else delete wn[workerId];
+      return { ...prev, workerNotes: wn };
+    });
+  };
+
   const handleMarkAllWorkersPresent = () => {
     onUpdateDay(dayNum, (prev) => {
       const ws = { ...(prev.workerStatus || {}) };
@@ -648,6 +658,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
                 <th className="py-2.5 px-3 border-l border-slate-200 dark:border-slate-700 text-right">الاسم واللقب</th>
                 <th className="py-2.5 px-3 border-l border-slate-200 dark:border-slate-700 text-right">الوظيفة / الرتبة</th>
                 <th className="py-2.5 px-3 min-w-[200px]">الحالة اليومية</th>
+                <th className="py-2.5 px-3 min-w-[160px]">ملاحظات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -665,7 +676,7 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
                     <td className="py-2 px-3 text-slate-600 dark:text-slate-300 border-l border-slate-200 dark:border-slate-700">
                       {w.job}
                     </td>
-                    <td className="p-1.5">
+                    <td className="p-1.5 border-l border-slate-200 dark:border-slate-700">
                       <select
                         value={status}
                         onChange={(e) => handleWorkerStatus(w.id, e.target.value)}
@@ -681,6 +692,14 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
                           </option>
                         ))}
                       </select>
+                    </td>
+                    <td className="p-1.5">
+                      <input
+                        value={currentDay.workerNotes?.[w.id] || ''}
+                        onChange={(e) => handleWorkerNote(w.id, e.target.value)}
+                        placeholder="اكتب ملاحظة..."
+                        className="w-full text-xs py-1.5 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                      />
                     </td>
                   </tr>
                 );
