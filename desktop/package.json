@@ -4,7 +4,7 @@
   "version": "2.3.1",
   "private": true,
   "description": "التقرير اليومي — مصلحة الاقتصاد (تحديث تلقائي من الموقع)",
-  "main": "loader.cjs",
+  "main": "main.cjs",
   "build": {
     "appId": "dz.mostasid.raport",
     "productName": "Raport-Portable",
@@ -13,11 +13,8 @@
       "output": "release"
     },
     "files": [
-      "loader.cjs",
-      "main.jsc",
-      "preload.cjs",
-      "app/**/*",
-      "node_modules/bytenode/**/*"
+      "main.cjs",
+      "app/**/*"
     ],
     "win": {
       "target": [
@@ -41,7 +38,6 @@
     "dist": "electron-builder --win portable"
   },
   "devDependencies": {
-    "bytenode": "^2.1.0",
     "electron": "^45.2.1",
     "electron-builder": "^26.18.0"
   }
