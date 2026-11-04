@@ -709,6 +709,26 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
         </div>
       </div>
 
+      {/* 3.ملاحظات عامة حول العمال (تُطبع في مربع بعد جدول العمال) */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-2 transition-colors">
+        <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+          <Users className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+            ملاحظات حول العمال
+          </h3>
+        </div>
+        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+          ملاحظات عامة تُطبع في مربع «ملاحظات» بعد جدول العمال بالتقرير اليومي.
+        </p>
+        <textarea
+          value={currentDay.notesWorkers || ''}
+          onChange={(e) => onUpdateDay(dayNum, (prev) => ({ ...prev, notesWorkers: e.target.value }))}
+          rows={3}
+          placeholder="مثال: كل العمال حاضرون باستثناء..."
+          className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none resize-y"
+        />
+      </div>
+
       {/* 4. وضعية المحلات والمرافق والأشغال */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Facilities */}

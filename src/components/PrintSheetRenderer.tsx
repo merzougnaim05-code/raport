@@ -318,6 +318,12 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           })()}
         </div>
 
+        {/* ملاحظات عامة حول العمال: مربع بعد جدول العمال */}
+        <div className="border border-black p-1.5 min-h-[46px]">
+          <div className="mb-0.5 font-black">ملاحظات حول العمال:</div>
+          <div>{blank ? '' : day.notesWorkers || ''}</div>
+        </div>
+
         {/* Facilities & Works: each in its own frame */}
         <div className="text-[10px] space-y-1 pt-0.5">
           <div className="border border-black p-1.5 min-h-[70px]">
