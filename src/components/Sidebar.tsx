@@ -37,6 +37,17 @@ interface SidebarProps {
   isDayFilled: (day: number) => boolean;
 }
 
+/** اختصارات أسماء أيام الأسبوع لعرضها داخل خانات شبكة الكالندري. */
+export const WEEKDAY_SHORT: Record<string, string> = {
+  'السبت': 'سبت',
+  'الأحد': 'أحد',
+  'الإثنين': 'إثن',
+  'الثلاثاء': 'ثلا',
+  'الأربعاء': 'أرب',
+  'الخميس': 'خمي',
+  'الجمعة': 'جمع',
+};
+
 export const Sidebar: React.FC<SidebarProps> = ({
   currentView,
   currentDay,
@@ -239,6 +250,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => {
                 const filled = isDayFilled(d);
                 const active = currentView === 'day' && currentDay === d;
+                const wd = getWeekdayName(d, meta);
+                const wdShort = WEEKDAY_SHORT[wd] || '';
                 return (
                   <button
                     key={d}
@@ -246,8 +259,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       onSelectDay(d);
                       onClose();
                     }}
-                    title={`اليوم ${d} ${filled ? '(مكتمل جزئيًا)' : ''}`}
-                    className={`relative aspect-square flex items-center justify-center rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    title={`اليوم ${d} — ${wd}`}
+                    className={`relative flex flex-col items-center justify-center rounded-lg transition-all cursor-pointer py-1 ${
                       active
                         ? 'bg-[#fcbb00] text-[#1c2e24] font-black shadow-md scale-105 z-10'
                         : filled
@@ -255,9 +268,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         : 'bg-white/5 text-emerald-100/70 hover:bg-white/15 hover:text-white'
                     }`}
                   >
-                    {d}
+                    <span className="text-xs font-bold leading-none">{d}</span>
+                    <span className="text-[8px] leading-none mt-0.5 opacity-80 truncate max-w-full px-0.5">
+                      {wdShort}
+                    </span>
                     {filled && !active && (
-                      <span className="absolute bottom-1 w-1 h-1 rounded-full bg-[#fcbb00]" />
+                      <span className="absolute bottom-[2px] left-1 w-1 h-1 rounded-full bg-[#fcbb00]" />
                     )}
                   </button>
                 );

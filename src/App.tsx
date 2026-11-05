@@ -148,6 +148,8 @@ export default function App() {
       setLastSavedText(`آخر حفظ تلقائي: ${timeStr}`);
     } catch (e) {
       console.error('Save failed:', e);
+      setLastSavedText('تعذّر الحفظ التلقائي!');
+      showToast('فشل الحفظ التلقائي — تحقق من مساحة التخزين المحلي', 'error');
     }
   };
 
@@ -174,15 +176,20 @@ export default function App() {
     const hasNotes = Boolean(
       day.notesEconomist ||
       day.notesDirector ||
+      day.notesWorkers ||
       day.mealNotes ||
       day.facilitiesStatus ||
       day.worksDone ||
       day.worksUrgent
     );
 
+    const hasWorkerNotes = Boolean(
+      day.workerNotes && Object.values(day.workerNotes).some((v: any) => Boolean(v && String(v).trim()))
+    );
+
     const hasAttendance = Boolean(day.attendance && day.attendance.length > 0);
 
-    return hasHc || hasMeals || hasNotes || hasAttendance;
+    return hasHc || hasMeals || hasNotes || hasWorkerNotes || hasAttendance;
   };
 
   // Updaters
