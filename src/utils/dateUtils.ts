@@ -27,8 +27,11 @@ export function resolveReportYear(meta: InstitutionMeta, now: Date = new Date())
   const m = meta.monthNum || now.getMonth() + 1;
 
   const years = extractYears(meta.year || '');
-  if (years.length >= 2) return m >= 9 ? years[0] : years[1];
-  if (years.length === 1) return years[0];
+  // تصحيح الصيغة المقلوبة (مثل "2027/2026"): نرتب السنتين تصاعديًا —
+  // سبتمبر–ديسمبر => الأصغر، جانفي–أوت => الأكبر.
+  const sorted = [...years].sort((a, b) => a - b);
+  if (sorted.length >= 2) return m >= 9 ? sorted[0] : sorted[1];
+  if (sorted.length === 1) return sorted[0];
   return now.getFullYear();
 }
 
