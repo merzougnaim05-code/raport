@@ -1,7 +1,7 @@
 {
   "name": "raport-desktop",
   "productName": "Raport-Portable",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "private": true,
   "description": "التقرير اليومي — مصلحة الاقتصاد (تحديث تلقائي من الموقع)",
   "main": "main.cjs",
