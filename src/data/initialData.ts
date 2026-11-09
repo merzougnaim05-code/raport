@@ -42,12 +42,6 @@ export const MEAL_CATEGORIES = [
   { id: 'general', label: 'عام (كل الوجبات)' },
 ];
 
-export const DEFAULT_MEALS: MealTemplate[] = [
-  { id: 'm0', name: 'فطور عادي', category: 'breakfast', description: 'حليب، قهوة، خبز، زبدة ومربى' },
-  { id: 'm1', name: 'غداء عادي', category: 'lunch', description: 'سلطة متنوعة، طبق رئيسي، خبز وفاكهة' },
-  { id: 'm2', name: 'عشاء عادي', category: 'dinner', description: 'حساء الخضر، طبق خفيف، ياغورت' },
-];
-
 export const DEFAULT_SHIFT_TEMPLATES: ShiftTemplate[] = [
   { id: 's0', name: 'صباحي', from: '08:00', to: '12:00', color: '#059669' },
   { id: 's1', name: 'مسائي', from: '13:00', to: '17:00', color: '#d97706' },
@@ -144,23 +138,6 @@ export const WEEK_SCHEDULE_DAYS = [
   { id: 'fri', label: 'الجمعة' }
 ];
 
-export const DEFAULT_SEED_WORKERS = [
-  { id: 'w0', name: 'فرحات توفيق', job: 'رئيس مخزن', phone: '' },
-  { id: 'w1', name: 'بوسديرة الشريف', job: 'مسؤول خ الداخلية', phone: '' },
-  { id: 'w2', name: 'بوخالفة صابر', job: 'عامل مهني م 2 (قيم)', phone: '' },
-  { id: 'w3', name: 'مساعدية موسى', job: 'طباخ', phone: '' },
-  { id: 'w4', name: 'حجيج رشيد', job: 'عامل مهني م 01', phone: '' },
-  { id: 'w5', name: 'منتفي نورية', job: 'عامل مهني م 01', phone: '' },
-  { id: 'w6', name: 'العلمي صحراوي', job: 'عامل مهني م 01', phone: '' },
-  { id: 'w7', name: 'حجيج يزيد', job: 'عامل مهني خ ص', phone: '' },
-  { id: 'w8', name: 'قرينة فواز', job: 'عامل مهني م 01', phone: '' },
-  { id: 'w9', name: 'بروال امحمد', job: 'عامل مهني م 01', phone: '' },
-  { id: 'w10', name: 'عطية ميلود', job: 'عامل مهني م 01', phone: '' },
-  { id: 'w11', name: 'العمري علي', job: 'عامل مهني م 01', phone: '' },
-  { id: 'w12', name: 'بونوارة زوبير', job: 'عامل مهني ص 01', phone: '' },
-  { id: 'w13', name: 'خلفة عز الدين', job: 'حارس', phone: '' },
-];
-
 export function createEmptyDay(): DayReportData {
   const headcount: Record<string, any> = {};
   CATEGORIES.forEach(c => {
@@ -198,18 +175,19 @@ export function getDefaultAppData(): AppData {
     meta: {
       republic: 'الجمهورية الجزائرية الديمقراطية الشعبية',
       ministry: 'وزارة التربية الوطنية',
-      directorate: 'مديرية التربية لولاية باتنة',
-      institution: 'متوسطة الإخوة الشهداء',
-      municipality: 'تالخمت',
-      wilaya: 'باتنة',
+      directorate: '',
+      institution: '',
+      municipality: '',
+      wilaya: '',
       year: getDefaultSchoolYear(now),
       monthNum: currentMonthIdx + 1,
       monthName: ARABIC_MONTHS[currentMonthIdx] || 'أفريل',
-      economistName: 'بن عمارة سمير',
-      directorName: 'قادري عزوز',
+      economistName: '',
+      directorName: '',
     },
-    workers: DEFAULT_SEED_WORKERS,
-    mealLibrary: DEFAULT_MEALS.map((m) => ({ ...m })),
+    // نسخة فارغة تمامًا للمستخدم الجديد — من لديه بيانات سابقة يبقي بياناته (مفتاح التخزين نفسه)
+    workers: [],
+    mealLibrary: [],
     shiftTemplates: DEFAULT_SHIFT_TEMPLATES.map((s) => ({ ...s })),
     sijl: {},
     modawama: JSON.parse(JSON.stringify(DEFAULT_MODAWAMA_PROGRAMS)),
