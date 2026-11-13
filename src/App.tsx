@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AppData, NavView, DayReportData, InstitutionMeta, Worker, MealTemplate, ShiftTemplate, SijlRow, ModawamaProgram } from './types';
+import { DataHubWidget } from './components/DataHubWidget';
 import { getDefaultAppData, createEmptyDay, ARABIC_MONTHS, createModawamaProgram, normalizeShiftTemplates } from './data/initialData';
 import { getDaysInMonth } from './utils/dateUtils';
 import { DOC_LIST } from './data/documentsConfig';
@@ -608,6 +609,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f7f4ed] dark:bg-slate-950 text-[#1c2e24] dark:text-slate-100 transition-colors" dir="rtl">
+      {/* مركز المعطيات: زر عائم ولوحة رفع/تحميل النسخة */}
+      <DataHubWidget
+        appKey="rapport"
+        appName="التقرير اليومي"
+        storageKeys={{ report: 'mostasid_daily_report_v2' }}
+      />
       {/* Hidden file input for backup restore */}
       <input
         type="file"
