@@ -37,6 +37,7 @@ type RaportDesktopApi = {
   desktop: boolean;
   updateFromSite: () => Promise<void>;
   importUpdateFile: () => Promise<void>;
+  onUpdateEvent?: (cb: () => void) => () => void;
 };
 
 const DesktopUpdateBar: React.FC = () => {

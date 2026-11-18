@@ -802,70 +802,52 @@ export const DayReportView: React.FC<DayReportViewProps> = ({
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Economist notes: framed box with several preset-dropdown + free-text fields */}
-          <div className="border-2 border-emerald-300 dark:border-emerald-800 rounded-xl p-3.5 bg-emerald-50/30 dark:bg-emerald-950/20">
-            <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-emerald-200 dark:border-emerald-900">
-              <label className="text-xs font-black text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5" />
-                <span>ملاحظات المقتصد (مسؤول المصالح الاقتصادية)</span>
-              </label>
-              <button
-                onClick={handleAddEconNote}
-                className="flex items-center gap-0.5 px-2 py-1 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 hover:bg-emerald-200 dark:hover:bg-emerald-900 rounded-md transition-colors cursor-pointer"
-              >
-                <Plus className="w-3 h-3" />
-                <span>حقل إضافي</span>
-              </button>
-            </div>
-            <div className="space-y-2">
-              {getEconNotes(currentDay).map((note, idx) => (
-                <div key={idx} className="flex items-center gap-1.5">
-                  <select
-                    value={note.preset || ''}
-                    onChange={(e) => handleEconNotePreset(idx, e.target.value)}
-                    className="w-40 shrink-0 text-[11px] font-semibold py-1.5 px-2 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-white dark:bg-slate-800 text-emerald-900 dark:text-emerald-200 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none cursor-pointer"
-                  >
-                    <option value="">— اختر ملاحظة —</option>
-                    {ECONOMIST_NOTE_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt} className="dark:bg-slate-800">{opt}</option>
-                    ))}
-                  </select>
-                  <input
-                    type="text"
-                    value={note.text || ''}
-                    onChange={(e) => handleEconNoteText(idx, e.target.value)}
-                    placeholder="أو اكتب ملاحظة حرة..."
-                    className="flex-1 min-w-0 text-xs p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-600 focus:outline-none"
-                  />
-                  {getEconNotes(currentDay).length > 3 && (
-                    <button
-                      onClick={() => handleRemoveEconNote(idx)}
-                      className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors cursor-pointer shrink-0"
-                      title="حذف هذا الحقل"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Director notes: framed box */}
-          <div className="border-2 border-indigo-200 dark:border-indigo-800/70 rounded-xl p-3.5 bg-indigo-50/30 dark:bg-indigo-950/20">
-            <label className="text-xs font-black text-indigo-900 dark:text-indigo-300 block mb-2.5 pb-2 border-b border-indigo-200 dark:border-indigo-900">
-              ملاحظات وتأشيرة السيد مدير المؤسسة
+        {/* Economist notes: framed box, full width (director notes are print-only) */}
+        <div className="border-2 border-emerald-300 dark:border-emerald-800 rounded-xl p-3.5 bg-emerald-50/30 dark:bg-emerald-950/20">
+          <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-emerald-200 dark:border-emerald-900">
+            <label className="text-xs font-black text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>ملاحظات المقتصد (مسؤول المصالح الاقتصادية)</span>
             </label>
-            <textarea
-              value={currentDay.notesDirector || ''}
-              onChange={(e) =>
-                onUpdateDay(dayNum, (prev) => ({ ...prev, notesDirector: e.target.value }))
-              }
-              rows={7}
-              placeholder="اطلعت على التقرير اليومي، موافق على الإجراءات..."
-              className="w-full text-xs p-3 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none leading-relaxed"
-            />
+            <button
+              onClick={handleAddEconNote}
+              className="flex items-center gap-0.5 px-2 py-1 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 hover:bg-emerald-200 dark:hover:bg-emerald-900 rounded-md transition-colors cursor-pointer"
+            >
+              <Plus className="w-3 h-3" />
+              <span>حقل إضافي</span>
+            </button>
+          </div>
+          <div className="space-y-2">
+            {getEconNotes(currentDay).map((note, idx) => (
+              <div key={idx} className="flex items-center gap-1.5">
+                <select
+                  value={note.preset || ''}
+                  onChange={(e) => handleEconNotePreset(idx, e.target.value)}
+                  className="w-40 shrink-0 text-[11px] font-semibold py-1.5 px-2 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-white dark:bg-slate-800 text-emerald-900 dark:text-emerald-200 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none cursor-pointer"
+                >
+                  <option value="">— اختر ملاحظة —</option>
+                  {ECONOMIST_NOTE_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt} className="dark:bg-slate-800">{opt}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  value={note.text || ''}
+                  onChange={(e) => handleEconNoteText(idx, e.target.value)}
+                  placeholder="أو اكتب ملاحظة حرة..."
+                  className="flex-1 min-w-0 text-xs p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-600 focus:outline-none"
+                />
+                {getEconNotes(currentDay).length > 3 && (
+                  <button
+                    onClick={() => handleRemoveEconNote(idx)}
+                    className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors cursor-pointer shrink-0"
+                    title="حذف هذا الحقل"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
