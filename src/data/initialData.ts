@@ -5,7 +5,9 @@ export const CATEGORIES = [
   { key: 'boarding', label: 'داخلي' },
   { key: 'halfboard', label: 'نصف داخلي' },
   { key: 'teachers', label: 'أساتذة' },
-  { key: 'assistants', label: 'مساعدو التربية' },
+  { key: 'assistants', label: 'مشرفو التربية' },
+  { key: 'admins', label: 'الإداريون' },
+  { key: 'halfboardSupervisors', label: 'مؤطرو النصف داخلي' },
   { key: 'guests', label: 'ضيوف' },
 ];
 
