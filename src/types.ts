@@ -28,6 +28,14 @@ export interface MealTemplate {
   description: string;
 }
 
+/** جدول الوجبات الغذائية الأسبوعي (الأحد–الخميس): وجبات الغداء المختارة
+    من المكتبة بالترتيب (الأولى للأحد...) + ملاحظة كل يوم + تاريخ الإصدار. */
+export interface WeeklyMenu {
+  mealIds: string[];
+  notes: string[];
+  issuedDate: string; // YYYY-MM-DD — تاريخ «وادي الماء في:»
+}
+
 export interface HeadcountRow {
   b_reg?: string | number;
   b_pres?: string | number;
@@ -145,6 +153,7 @@ export interface AppData {
   meta: InstitutionMeta;
   workers: Worker[];
   mealLibrary: MealTemplate[];
+  weeklyMenus: Record<string, WeeklyMenu>;
   shiftTemplates: ShiftTemplate[];
   sijl: Record<string, SijlRow>;
   modawama: ModawamaProgram[];

@@ -190,6 +190,7 @@ export function getDefaultAppData(): AppData {
     // نسخة فارغة تمامًا للمستخدم الجديد — من لديه بيانات سابقة يبقي بياناته (مفتاح التخزين نفسه)
     workers: [],
     mealLibrary: [],
+    weeklyMenus: {},
     shiftTemplates: DEFAULT_SHIFT_TEMPLATES.map((s) => ({ ...s })),
     sijl: {},
     modawama: JSON.parse(JSON.stringify(DEFAULT_MODAWAMA_PROGRAMS)),

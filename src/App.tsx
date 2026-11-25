@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AppData, NavView, DayReportData, InstitutionMeta, Worker, MealTemplate, ShiftTemplate, SijlRow, ModawamaProgram } from './types';
+import { AppData, NavView, DayReportData, InstitutionMeta, Worker, MealTemplate, WeeklyMenu, ShiftTemplate, SijlRow, ModawamaProgram } from './types';
 import { getDefaultAppData, createEmptyDay, ARABIC_MONTHS, createModawamaProgram, normalizeShiftTemplates } from './data/initialData';
 import { getDaysInMonth } from './utils/dateUtils';
 import { DOC_LIST } from './data/documentsConfig';
@@ -14,6 +14,7 @@ import { CoversView } from './components/CoversView';
 import { CoverPrintSheet } from './components/CoverPrintSheet';
 import { WorkersView } from './components/WorkersView';
 import { MealsLibraryView } from './components/MealsLibraryView';
+import { WeeklyMenuView } from './components/WeeklyMenuView';
 import { ShiftsView } from './components/ShiftsView';
 import { SijlView } from './components/SijlView';
 import { ModawamaView } from './components/ModawamaView';
@@ -47,6 +48,7 @@ export default function App() {
           meta: mergedMeta,
           workers: parsed.workers && parsed.workers.length > 0 ? parsed.workers : defaults.workers,
           mealLibrary: parsed.mealLibrary ?? defaults.mealLibrary,
+          weeklyMenus: parsed.weeklyMenus || {},
           shiftTemplates: normalizeShiftTemplates(parsed.shiftTemplates ?? defaults.shiftTemplates),
           sijl: parsed.sijl || {},
           modawama: parsed.modawama ?? defaults.modawama,
@@ -63,6 +65,7 @@ export default function App() {
 
   // App navigation state
   const [currentView, setCurrentView] = useState<NavView>('dashboard');
+  const [mealsTab, setMealsTab] = useState<'library' | 'weekly'>('library');
   const [currentDay, setCurrentDay] = useState<number>(1);
   const [currentDocKey, setCurrentDocKey] = useState<string>('bon_sortie');
   const [currentModawamaId, setCurrentModawamaId] = useState<string>('');
@@ -497,6 +500,37 @@ export default function App() {
     openPrintModal(title, content);
   };
 
+  // جدول الوجبات الغذائية الأسبوعي — حفظ اختيارات أسبوع + فتح معاينة الطباعة
+  const localTodayISO = (): string => {
+    const d = new Date();
+    const p = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  };
+
+  const handleUpdateWeeklyMenu = (key: string, patch: Partial<WeeklyMenu>) => {
+    setData((prev) => {
+      const cur: WeeklyMenu = (prev.weeklyMenus || {})[key] || {
+        mealIds: [],
+        notes: ['', '', '', '', ''],
+        issuedDate: localTodayISO(),
+      };
+      const nextData = {
+        ...prev,
+        weeklyMenus: { ...(prev.weeklyMenus || {}), [key]: { ...cur, ...patch } },
+      };
+      saveToStorage(nextData);
+      return nextData;
+    });
+  };
+
+  const handlePrintWeeklyMenu = (weekNum: number) => {
+    const wn = weekNum >= 1 && weekNum <= 4 ? weekNum : 1;
+    const weekLabels = ['الأول', 'الثاني', 'الثالث', 'الرابع'];
+    const title = `جدول الوجبات الغذائية الأسبوعية — الأسبوع ${weekLabels[wn - 1]}`;
+    const content = <PrintSheetRenderer type="weeklyMenu" data={data} weekNum={wn} />;
+    openPrintModal(title, content);
+  };
+
   const handlePrintSijlCollective = () => {
     const title = 'سجل الغيابات والتأخرات — الورقة الجماعية';
     const content = <PrintSheetRenderer type="sijl" data={data} />;
@@ -578,6 +612,7 @@ export default function App() {
               meta: { ...defaults.meta, ...(imported.meta || {}) },
               workers: imported.workers || defaults.workers,
               mealLibrary: imported.mealLibrary ?? defaults.mealLibrary,
+              weeklyMenus: imported.weeklyMenus || {},
               shiftTemplates: normalizeShiftTemplates(imported.shiftTemplates ?? defaults.shiftTemplates),
               sijl: imported.sijl || {},
               modawama: imported.modawama ?? defaults.modawama,
@@ -815,12 +850,47 @@ export default function App() {
             )}
 
             {currentView === 'meals' && (
-              <MealsLibraryView
-                library={data.mealLibrary}
-                onAddMeal={handleAddMeal}
-                onUpdateMeal={handleUpdateMeal}
-                onDeleteMeal={handleDeleteMeal}
-              />
+              <div className="space-y-4">
+                <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit no-print">
+                  <button
+                    onClick={() => setMealsTab('library')}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors cursor-pointer ${
+                      mealsTab === 'library'
+                        ? 'bg-white dark:bg-slate-900 shadow text-emerald-700 dark:text-emerald-400'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    مكتبة الوجبات
+                  </button>
+                  <button
+                    onClick={() => setMealsTab('weekly')}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors cursor-pointer ${
+                      mealsTab === 'weekly'
+                        ? 'bg-white dark:bg-slate-900 shadow text-emerald-700 dark:text-emerald-400'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    الجدول الأسبوعي
+                  </button>
+                </div>
+
+                {mealsTab === 'library' ? (
+                  <MealsLibraryView
+                    library={data.mealLibrary}
+                    onAddMeal={handleAddMeal}
+                    onUpdateMeal={handleUpdateMeal}
+                    onDeleteMeal={handleDeleteMeal}
+                  />
+                ) : (
+                  <WeeklyMenuView
+                    meta={data.meta}
+                    library={data.mealLibrary}
+                    weeklyMenus={data.weeklyMenus || {}}
+                    onUpdateMenu={handleUpdateWeeklyMenu}
+                    onPrint={handlePrintWeeklyMenu}
+                  />
+                )}
+              </div>
             )}
 
             {currentView === 'shifts' && (

@@ -5,15 +5,18 @@ import { CATEGORIES, WEEK_SCHEDULE_DAYS } from '../data/initialData';
 import { getWeekdayName as resolveWeekday, resolveReportYear, getCanonicalMonthName, getDaysInMonth } from '../utils/dateUtils';
 import { DOC_LIST, SIMPLE_DOCS_SPEC } from '../data/documentsConfig';
 import { computeAutoSijl, computeSijlStats, fmt, mergeSijlRows } from '../utils/sijlUtils';
+import { WeeklyMenuSheet } from './WeeklyMenuSheet';
+import { getWeekDays, weeklyMenuKey } from '../utils/dateUtils';
 
 interface PrintSheetRendererProps {
-  type: 'day' | 'workers' | 'doc' | 'sijl' | 'modawama' | 'attendance' | 'internalSrv';
+  type: 'day' | 'workers' | 'doc' | 'sijl' | 'modawama' | 'attendance' | 'internalSrv' | 'weeklyMenu';
   data: AppData;
   dayNum?: number;
   docKey?: string;
   blank?: boolean;
   sijlWorkerId?: string;
   modawamaId?: string;
+  weekNum?: number;
 }
 
 export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
@@ -24,6 +27,7 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
   blank = false,
   sijlWorkerId = '',
   modawamaId = '',
+  weekNum = 1,
 }) => {
   const meta = data.meta;
 
@@ -1383,6 +1387,35 @@ export const PrintSheetRenderer: React.FC<PrintSheetRendererProps> = ({
           <div>مدير المؤسسة<div className="h-14 w-32 border-b border-dotted border-black mt-2" /></div>
         </div>
       </div>
+    );
+  }
+
+  // جدول الوجبات الغذائية الأسبوعي (الأحد–الخميس) — من مكتبة الوجبات
+  if (type === 'weeklyMenu') {
+    const wn = weekNum >= 1 && weekNum <= 4 ? weekNum : 1;
+    const days = getWeekDays(meta, wn);
+    const menuKey = weeklyMenuKey(meta, wn);
+    const d = new Date();
+    const p2 = (n: number) => String(n).padStart(2, '0');
+    const todayISO = `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+    const menu = (data.weeklyMenus || {})[menuKey] || {
+      mealIds: [],
+      notes: ['', '', '', '', ''],
+      issuedDate: todayISO,
+    };
+    const meals = days.map((_, i) => {
+      const id = (menu.mealIds || [])[i];
+      return id ? (data.mealLibrary || []).find((m) => m.id === id) || null : null;
+    });
+    const notes = menu.notes && menu.notes.length === 5 ? menu.notes : ['', '', '', '', ''];
+    return (
+      <WeeklyMenuSheet
+        meta={meta}
+        days={days}
+        meals={meals}
+        notes={notes}
+        issuedDate={menu.issuedDate || todayISO}
+      />
     );
   }
 
