@@ -1,13 +1,14 @@
 // زر «معطيات المؤسسة» — ودجت عام لأي تطبيق React
-// يسحب الهوية الرسمية للمؤسسة من مركز service-info-hub ويطبّقها على مفاتيح
-// localStorage التي يحددها التطبيق (كل مؤسسة بسجلها، لا تداخل).
-// النقل تلقائي عند الإقلاع دون رقم ميكانوغرافي ولا تأكيد: إن غاب الرقم تُبنّى
-// أحدث مؤسسة محفوظة في المركز؛ ورابط البوابة (?mecano=...) يبقى الأدق ويفوز.
+// يستقبل الهوية الرسمية للمؤسسة من البوابة عبر جزء الرابط (#inst=...) عند الفتح،
+// ويحفظها محلياً في هذا المتصفح فقط (localStorage)، ثم يطبّقها على مفاتيح
+// localStorage التي يحددها التطبيق. لا يوجد أي اتصال بخادم أو مركز: المعطيات
+// لا تُرفع إلى أي مكان ولا تظهر لمستخدمين أو متصفحات أخرى.
 import { useEffect, useState } from 'react';
 
-const HUB_URL = 'https://service-info-hub.merzougnaim05.workers.dev';
 const LS_MECANO = 'instInfoMecanoV1';
 const LS_APPLIED = 'instInfoAppliedAtV1';
+const LS_INFO = 'instInfoV1';
+const LS_UPDATED = 'instInfoUpdatedAtV1';
 
 export interface InstInfoTarget {
   /** مفتاح localStorage الذي يحوي بيانات التطبيق */
@@ -20,9 +21,8 @@ export interface InstInfoTarget {
   numeric?: string[];
 }
 
-interface HubInfo {
+interface InstInfo {
   [field: string]: unknown;
-  _updatedAt?: string;
 }
 
 function getLS(k: string): string | null {
@@ -31,44 +31,44 @@ function getLS(k: string): string | null {
 function setLS(k: string, v: string | null) {
   try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch { /* ignore */ }
 }
-function getMecano(): string {
-  const m = (getLS(LS_MECANO) || '').trim().toLowerCase().replace(/\s+/g, '-');
-  return m;
+function normalizeMecano(v: unknown): string {
+  return String(v || '').trim().toLowerCase().replace(/\s+/g, '-');
 }
-// أحدث مؤسسة محفوظة في المركز (حسب تاريخ الحفظ) — تُبنّى عند غياب الرقم
-// الميكانوغرافي، دون طلبه من المستخدم. رابط البوابة والرقم المحفوظ يفوزان عليها.
-interface OrgEntry { mecano?: string; updatedAt?: string; _updatedAt?: string }
-function pickLatestOrg(orgs: OrgEntry[]): string | null {
-  let best: OrgEntry | null = null;
-  let bestAt = '';
-  for (const o of orgs || []) {
-    const m = String(o.mecano || '').trim().toLowerCase().replace(/\s+/g, '-');
-    if (!/^[a-z0-9._-]{3,32}$/.test(m)) continue;
-    const at = String(o.updatedAt || o._updatedAt || '');
-    if (!best || at > bestAt) { best = o; bestAt = at; }
-  }
-  return best ? String(best.mecano) : null;
-}
-async function fetchLatestMecano(): Promise<string | null> {
+
+// فكّ حمولة البوابة من جزء الرابط (#inst=<base64url>) — بيانات مشفّرة بصيغة
+// base64url من JSON بترميز UTF-8: {"info": {...}, "updatedAt": "..."}
+function decodeHashInfo(): { info: InstInfo; updatedAt: string } | null {
   try {
-    const j = await (await fetch(`${HUB_URL}/api/orgs`, { cache: 'no-store' })).json();
-    if (!j.ok || !j.orgs) return null;
-    return pickLatestOrg(j.orgs as OrgEntry[]);
+    const hash = window.location.hash || '';
+    if (!hash) return null;
+    const payload = new URLSearchParams(hash.replace(/^#/, '')).get('inst');
+    if (!payload) return null;
+    let b64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const data: unknown = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+    const info = (data as { info?: unknown }).info;
+    if (!info || typeof info !== 'object' || Array.isArray(info)) return null;
+    const upd = (data as { updatedAt?: unknown }).updatedAt;
+    return { info: info as InstInfo, updatedAt: typeof upd === 'string' ? upd : '' };
   } catch { return null; }
 }
 
-function getContainer(obj: Record<string, unknown>, subPath?: string): Record<string, unknown> | null {
-  if (!subPath) return obj;
-  let cur: unknown = obj;
-  for (const part of subPath.split('.')) {
-    if (!cur || typeof cur !== 'object') return null;
-    cur = (cur as Record<string, unknown>)[part];
-  }
-  if (!cur || typeof cur !== 'object' || Array.isArray(cur)) return null;
-  return cur as Record<string, unknown>;
+// المعطيات المحفوظة محلياً في هذا المتصفح (وصلت من البوابة عبر رابط الفتح)
+function loadStoredInfo(): { info: InstInfo; updatedAt: string } | null {
+  const raw = getLS(LS_INFO);
+  if (!raw) return null;
+  try {
+    const info: unknown = JSON.parse(raw);
+    if (!info || typeof info !== 'object' || Array.isArray(info)) return null;
+    return { info: info as InstInfo, updatedAt: getLS(LS_UPDATED) || '' };
+  } catch { return null; }
 }
 
-// مثل getContainer لكنه ينشئ المسار إن غاب (لمفتاح جديد لم يُحفظ بعد)
+// ينشئ مسار الحاوية إن غاب (لمفتاح جديد لم يُحفظ بعد)
 function ensureContainer(obj: Record<string, unknown>, subPath?: string): Record<string, unknown> | null {
   if (!subPath) return obj;
   let cur: Record<string, unknown> = obj;
@@ -85,18 +85,7 @@ function ensureContainer(obj: Record<string, unknown>, subPath?: string): Record
   return cur;
 }
 
-async function fetchInfo(mecano: string): Promise<{ info: HubInfo } | { error: string }> {
-  try {
-    const res = await fetch(`${HUB_URL}/api/info/${encodeURIComponent(mecano)}`, { cache: 'no-store' });
-    const j = await res.json();
-    if (!j.ok) return { error: j.error || 'لا يوجد سجل' };
-    return { info: j.info as HubInfo };
-  } catch {
-    return { error: 'تعذّر الاتصال بمركز البوابة' };
-  }
-}
-
-function applyInfo(targets: InstInfoTarget[], info: HubInfo): string[] {
+function applyInfo(targets: InstInfoTarget[], info: InstInfo): string[] {
   const applied: string[] = [];
   for (const t of targets) {
     // مفتاح جديد: أنشئ الكائن ومسار الحاوية من الصفر حتى تُطبَّق المعطيات دون انتظار أول حفظ
@@ -134,76 +123,58 @@ function applyInfo(targets: InstInfoTarget[], info: HubInfo): string[] {
 
 export function InstInfoWidget({ appName, targets }: { appName: string; targets: InstInfoTarget[] }) {
   const [open, setOpen] = useState(false);
-  const [info, setInfo] = useState<HubInfo | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [info, setInfo] = useState<InstInfo | null>(null);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
-  const [mecanoInput, setMecanoInput] = useState(getMecano());
 
-  // تطبيق صامت تلقائي عند الإقلاع: آخر معطيات من المركز تُكتب مباشرة (طلب صريح من المستخدم)
+  // تطبيق صامت تلقائي عند الإقلاع: معطيات البوابة الواصلة عبر الرابط أو المحفوظة
+  // محلياً تُكتب مباشرة في مفاتيح التطبيق (دون أي اتصال بخادم)
   useEffect(() => {
-    let alive = true;
-    const boot = async () => {
-      // رقم ميكانوغرافي يمرَّر من البوابة في الرابط (?mecano=...) — يُحفظ ويُطبَّق تلقائياً دون الزر
-      try {
-        const q = new URLSearchParams(window.location.search).get('mecano');
-        if (q) {
-          const m = q.trim().toLowerCase().replace(/\s+/g, '-');
-          if (/^[a-z0-9._-]{3,32}$/.test(m)) {
-            setLS(LS_MECANO, m);
-            const u = new URL(window.location.href);
-            u.searchParams.delete('mecano');
-            window.history.replaceState(null, '', u.pathname + u.search + u.hash);
-          }
-        }
-      } catch { /* تجاهل */ }
-      let mecano = getMecano();
-      if (!mecano) {
-        // تبنّي آلي دون رقم: أحدث مؤسسة محفوظة في المركز (رابط البوابة يبقى الأدق)
-        const latest = await fetchLatestMecano();
-        if (latest) {
-          setLS(LS_MECANO, latest);
-          mecano = getMecano();
+    // رقم ميكانوغرافي يمرَّر من البوابة في الرابط (?mecano=...) — يُحفظ محلياً ويُزال من الرابط
+    try {
+      const q = new URLSearchParams(window.location.search).get('mecano');
+      if (q) {
+        const m = q.trim().toLowerCase().replace(/\s+/g, '-');
+        if (/^[a-z0-9._-]{3,32}$/.test(m)) {
+          setLS(LS_MECANO, m);
+          const u = new URL(window.location.href);
+          u.searchParams.delete('mecano');
+          window.history.replaceState(null, '', u.pathname + u.search + u.hash);
         }
       }
-      if (!mecano) return;
-      const r = await fetchInfo(mecano);
-      if (!alive || !('info' in r)) return;
-      const hubAt = r.info._updatedAt || '';
-      const mine = getLS(LS_APPLIED) || '';
-      if (!hubAt || (mine && new Date(hubAt) <= new Date(mine))) return;
-      const applied = applyInfo(targets, r.info);
-      setLS(LS_APPLIED, hubAt);
-      if (applied.length > 0) { location.reload(); return; }
-    };
-    boot();
-    return () => { alive = false; };
-    // الإقلاع مرة واحدة عند التركيب — كان الاعتماد على appKey غير المعرّفة فيسبب ReferenceError يُسقط الواجهة كلها
+    } catch { /* تجاهل */ }
+    // حمولة المعطيات من البوابة (#inst=...) — تُحفظ محلياً ثم تُزال من شريط العنوان
+    try {
+      const fromHash = decodeHashInfo();
+      if (fromHash) {
+        setLS(LS_INFO, JSON.stringify(fromHash.info));
+        const m = normalizeMecano(fromHash.info.mecano);
+        if (m) setLS(LS_MECANO, m);
+        setLS(LS_UPDATED, fromHash.updatedAt || new Date().toISOString());
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    } catch { /* تجاهل */ }
+    // تطبيق أحدث نسخة محفوظة محلياً إن لم تُطبَّق بعد
+    const stored = loadStoredInfo();
+    if (!stored) return;
+    const storedAt = stored.updatedAt;
+    const mine = getLS(LS_APPLIED) || '';
+    if (storedAt && mine && new Date(storedAt) <= new Date(mine)) return;
+    const applied = applyInfo(targets, stored.info);
+    setLS(LS_APPLIED, storedAt || new Date().toISOString());
+    if (applied.length > 0) { location.reload(); return; }
+    // الإقلاع مرة واحدة عند التركيب
   }, []);
 
-  const doFetch = async (mecanoArg?: string) => {
-    let mecano = mecanoArg || mecanoInput.trim() || getMecano();
-    if (!mecano) {
-      // الحقل فارغ: جلب أحدث مؤسسة محفوظة دون طلب الرقم
-      const latest = await fetchLatestMecano();
-      if (!latest) { setMsg({ text: 'لا توجد مؤسسة محفوظة في المركز بعد — احفظها من البوابة أولًا', ok: false }); return; }
-      mecano = latest;
-      setMecanoInput(latest);
-      setLS(LS_MECANO, latest);
-    }
-    if (!mecanoArg && mecanoInput.trim()) setLS(LS_MECANO, mecanoInput.trim().toLowerCase().replace(/\s+/g, '-'));
-    setBusy(true); setMsg(null);
-    const r = await fetchInfo(mecano);
-    setBusy(false);
-    if ('error' in r) { setMsg({ text: `✗ ${r.error}`, ok: false }); return; }
-    setInfo(r.info);
-    setMsg({ text: `✓ جُلبت معطيات المؤسسة${r.info.institution ? ` (${r.info.institution})` : ''} — اضغط «تطبيق» للكتابة في ${appName}`, ok: true });
+  const openPanel = () => {
+    const stored = loadStoredInfo();
+    setInfo(stored ? stored.info : null);
+    setOpen(true);
+    setMsg(null);
   };
 
-  const doApply = async (infoToApply: HubInfo) => {
-    setBusy(true);
+  const doApply = (infoToApply: InstInfo) => {
     const applied = applyInfo(targets, infoToApply);
-    setLS(LS_APPLIED, infoToApply._updatedAt || new Date().toISOString());
-    setBusy(false);
+    setLS(LS_APPLIED, getLS(LS_UPDATED) || new Date().toISOString());
     setMsg({ text: `✓ طُبّقت الحقول على ${appName}: ${applied.length ? applied.join('، ') : 'لا حقول مطابقة'}`, ok: true });
     setTimeout(() => location.reload(), 800);
   };
@@ -224,8 +195,8 @@ export function InstInfoWidget({ appName, targets }: { appName: string; targets:
     <>
       {/* زر الشريط العلوي — أسفل الشريط مباشرة وسط الصفحة، تسمية «معطيات المؤسسة» */}
       <button
-        onClick={() => { setMecanoInput(getMecano()); setOpen(true); setMsg(null); }}
-        title="معطيات المؤسسة الرسمية من مركز البوابة"
+        onClick={openPanel}
+        title="معطيات المؤسسة الرسمية — محفوظة محلياً في هذا المتصفح"
         className="no-print fixed top-[58px] left-1/2 -translate-x-1/2 z-[9999] rounded-full text-white shadow-lg border-2 border-amber-400 transition-transform hover:-translate-y-0.5 h-[36px] px-3 grid place-items-center"
         style={{ background: 'linear-gradient(145deg,#065f46,#047857 55%,#134e4a)' }}
         dir="rtl"
@@ -240,8 +211,8 @@ export function InstInfoWidget({ appName, targets }: { appName: string; targets:
 
       {/* الزر العائم — أسفل اليسار بجانب زر الاتصال، تسمية «معطيات المؤسسة» */}
       <button
-        onClick={() => { setMecanoInput(getMecano()); setOpen(true); setMsg(null); }}
-        title="معطيات المؤسسة الرسمية من مركز البوابة"
+        onClick={openPanel}
+        title="معطيات المؤسسة الرسمية — محفوظة محلياً في هذا المتصفح"
         className="no-print fixed bottom-[18px] left-[140px] h-[52px] z-[9999] rounded-2xl grid place-items-center text-white shadow-lg border-2 border-amber-400 transition-transform hover:-translate-y-0.5 px-3"
         style={{ background: 'linear-gradient(145deg,#065f46,#047857 55%,#134e4a)' }}
         dir="rtl"
@@ -263,24 +234,11 @@ export function InstInfoWidget({ appName, targets }: { appName: string; targets:
               <button onClick={() => setOpen(false)} className="w-7 h-7 rounded-full bg-white/15 hover:bg-white/30 text-xs">✕</button>
             </div>
             <div className="p-4 space-y-3 max-h-[55vh] overflow-y-auto">
-              <div className="flex items-center gap-2">
-                <label className="text-[11px] font-bold text-slate-600 whitespace-nowrap">الرقم الميكانوغرافي:</label>
-                <input
-                  type="text"
-                  value={mecanoInput}
-                  onChange={(e) => setMecanoInput(e.target.value)}
-                  placeholder="مفتاح المؤسسة في المركز"
-                  className="flex-1 min-w-0 border border-slate-300 rounded-lg px-2 py-1.5 text-xs font-bold"
-                  dir="ltr"
-                />
-                <button
-                  onClick={() => doFetch()}
-                  disabled={busy}
-                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs px-3 py-1.5 rounded-lg whitespace-nowrap"
-                >
-                  {busy ? 'جارٍ الجلب…' : 'جلب من المركز'}
-                </button>
-              </div>
+              {!info && (
+                <div className="text-xs font-bold px-3 py-2 rounded-xl border bg-amber-50 text-amber-800 border-amber-200">
+                  لا توجد معطيات محفوظة في هذا المتصفح — افتح هذا التطبيق من البوابة بعد حفظ معطيات المؤسسة فيها
+                </div>
+              )}
               {info && (
                 <div className="border border-slate-200 rounded-xl p-3 space-y-1.5 bg-slate-50">
                   {fields.map(([k, label]) => (
@@ -294,8 +252,7 @@ export function InstInfoWidget({ appName, targets }: { appName: string; targets:
               {info && (
                 <button
                   onClick={() => doApply(info)}
-                  disabled={busy}
-                  className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-black text-sm px-3 py-2 rounded-xl transition-colors"
+                  className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm px-3 py-2 rounded-xl transition-colors"
                 >
                   تطبيق هذه المعطيات على {appName}
                 </button>
@@ -306,7 +263,7 @@ export function InstInfoWidget({ appName, targets }: { appName: string; targets:
                 </div>
               )}
               <p className="text-[10px] text-slate-400 leading-5">
-                المعطيات تُدار من زر «معطيات المؤسسة» في البوابة، وكل مؤسسة بسجلها حسب الرقم الميكانوغرافي — لا تداخل بين المؤسسات.
+                المعطيات تصل من البوابة عبر رابط الفتح وتُحفظ في هذا المتصفح فقط — لا تُرفع إلى أي خادم ولا تظهر لمستخدمين آخرين.
               </p>
             </div>
           </div>
